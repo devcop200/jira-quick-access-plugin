@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Jira Quick Access – Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <div class="page-header">
+    <div class="jira-logo">J</div>
+    <h1>Jira Quick Access — Settings</h1>
+  </div>
+
+  <div class="container">
+    <div class="cards-grid">
+
+      <div class="card">
+        <h2>Connection</h2>
+
+        <div class="field">
+          <label for="jira-url">Jira URL</label>
+          <input type="url" id="jira-url" placeholder="https://example.com" autocomplete="off" />
+          <p class="field-hint">The base URL of your Jira instance (no trailing slash).</p>
+        </div>
+
+        <div class="field">
+          <label for="jira-pat">Personal Access Token</label>
+          <input type="password" id="jira-pat" placeholder="Paste your PAT here" autocomplete="new-password" />
+          <p class="field-hint">
+            Generate one at Jira → Profile → Personal Access Tokens.
+            Stored locally in your browser only.
+          </p>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="save-btn">Save</button>
+          <button class="btn-secondary" id="test-btn">Test Connection</button>
+          <span class="save-indicator" id="save-indicator">✓ Saved</span>
+        </div>
+
+        <div class="status" id="status-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Returned Tickets</h2>
+        <p class="section-desc">
+          Issues matching this JQL are polled every 5 minutes in the background.
+          Matching tickets appear in the <strong>Notifications</strong> tab and you get a desktop
+          notification when the count increases.
+        </p>
+
+        <div class="field">
+          <label for="watch-jql">JQL Filter</label>
+          <textarea id="watch-jql" rows="3"
+            placeholder="labels = my_watch_label AND assignee = currentUser() AND status != Done"></textarea>
+          <p class="field-hint">Leave empty to disable background monitoring.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="save-watch-btn">Save</button>
+          <button class="btn-secondary" id="test-watch-btn">Test Filter</button>
+          <span class="save-indicator" id="watch-save-ind">✓ Saved</span>
+        </div>
+        <div class="status" id="watch-status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Watching</h2>
+
+        <div class="toggle-field">
+          <label class="toggle-label">
+            <input type="checkbox" id="watching-exclude-done" checked />
+            <span>Exclude tickets with status <strong>Done</strong></span>
+          </label>
+          <p class="field-hint">When enabled, the Watching tab hides tickets you've already resolved.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Notifications</h2>
+        <p class="section-desc">
+          The extension polls Jira every 5 minutes in the background and can show desktop
+          notifications when something needs your attention.
+        </p>
+
+        <div class="toggle-field">
+          <label class="toggle-label">
+            <input type="checkbox" id="notify-returned" checked />
+            <span>Notify when <strong>Returned Tickets</strong> count increases</span>
+          </label>
+          <p class="field-hint">Fires when more tickets match your Returned Tickets JQL filter than last poll.</p>
+        </div>
+
+        <div class="toggle-field" style="margin-top:14px">
+          <label class="toggle-label">
+            <input type="checkbox" id="notify-mentions" checked />
+            <span>Notify on new <strong>Mentions</strong></span>
+          </label>
+          <p class="field-hint">Fires when someone mentions you in a comment (e.g. "John Doe mentioned you in PROJ-123").</p>
+        </div>
+
+        <div class="toggle-field" style="margin-top:14px">
+          <label class="toggle-label">
+            <input type="checkbox" id="notify-assignments" checked />
+            <span>Notify on new <strong>Assignments</strong></span>
+          </label>
+          <p class="field-hint">Fires when a ticket is assigned to you that wasn't in the previous poll.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

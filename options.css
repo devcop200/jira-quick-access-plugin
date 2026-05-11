@@ -1,0 +1,229 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  background: #f4f5f7;
+  color: #172b4d;
+  min-height: 100vh;
+}
+
+.page-header {
+  background: #0052CC;
+  color: #fff;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.jira-logo {
+  width: 28px;
+  height: 28px;
+  background: #fff;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0052CC;
+  font-weight: 900;
+  font-size: 17px;
+}
+
+.page-header h1 { font-size: 18px; font-weight: 600; }
+
+.container {
+  max-width: 920px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 28px 32px;
+}
+
+.card h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ebecf0;
+  color: #172b4d;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  font-size: 13px;
+  color: #344563;
+  margin-bottom: 6px;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: #7a869a;
+  margin-top: 4px;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="password"] {
+  width: 100%;
+  border: 2px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: #172b4d;
+  outline: none;
+  transition: border-color 0.15s;
+  background: #fafbfc;
+}
+input:focus {
+  border-color: #0052CC;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0,82,204,0.12);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-primary {
+  background: #0052CC;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #0065FF; }
+.btn-primary:disabled { background: #b3d4ff; cursor: not-allowed; }
+
+.btn-secondary {
+  background: #f4f5f7;
+  color: #344563;
+  border: 2px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-secondary:hover { background: #ebecf0; }
+
+/* Status messages */
+.status {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  display: none;
+}
+.status.visible { display: block; }
+.status.success { background: #e3fcef; color: #006644; border: 1px solid #abf5d1; }
+.status.error   { background: #ffebe6; color: #bf2600; border: 1px solid #ffbdad; }
+.status.info    { background: #deebff; color: #0747a6; border: 1px solid #b3d4ff; }
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0052CC;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.user-info { line-height: 1.4; }
+.user-name { font-weight: 600; color: #172b4d; }
+.user-email { font-size: 12px; color: #5e6c84; }
+
+.section-desc {
+  font-size: 13px;
+  color: #5e6c84;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 100%;
+  border: 2px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: #172b4d;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  background: #fafbfc;
+  min-height: 76px;
+}
+textarea:focus {
+  border-color: #0052CC;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0,82,204,0.12);
+}
+
+.toggle-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #172b4d;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #0052CC;
+  flex-shrink: 0;
+}
+
+.save-indicator {
+  font-size: 12px;
+  color: #006644;
+  margin-left: auto;
+  display: none;
+}
+.save-indicator.visible { display: inline; }
