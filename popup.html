@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <div class="jira-dot">J</div>
+      <span>Jira</span>
+      <span class="user-label" id="user-label"></span>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" id="refresh-btn" title="Refresh">↻</button>
+      <button class="icon-btn" id="settings-btn" title="Settings">⚙</button>
+    </div>
+  </header>
+
+  <div id="not-configured" class="hidden">
+    <p>No Jira connection configured.<br/>Add your Jira URL and Personal Access Token to get started.</p>
+    <button class="btn-primary" id="go-settings-btn">Open Settings</button>
+  </div>
+
+  <div id="main-content" class="hidden">
+    <div class="tabs">
+      <button class="tab active" data-tab="my-issues">My Issues</button>
+      <button class="tab" data-tab="search">Search</button>
+      <button class="tab" data-tab="logged-work">Logged Work</button>
+      <button class="tab" data-tab="watching">Watching</button>
+      <button class="tab" data-tab="notifications">Notifications<span class="tab-badge hidden" id="notifications-count"></span></button>
+    </div>
+
+    <div id="my-issues-panel" class="panel">
+      <div id="filter-bar" class="hidden"></div>
+      <div id="issues-container"></div>
+    </div>
+
+    <div id="search-panel" class="panel hidden">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search issues… (press Enter)" autocomplete="off" />
+      </div>
+      <div id="search-results"></div>
+    </div>
+
+    <div id="logged-work-panel" class="panel hidden">
+      <div class="period-selector">
+        <button class="period-btn active" data-period="today">Today</button>
+        <button class="period-btn" data-period="week">Week</button>
+        <button class="period-btn" data-period="month">Month</button>
+        <button class="period-btn" data-period="custom">Custom</button>
+      </div>
+      <div id="custom-dates" class="hidden">
+        <div class="date-range-row">
+          <input type="date" id="date-from" />
+          <span class="date-sep">–</span>
+          <input type="date" id="date-to" />
+          <button class="btn-go" id="apply-custom-dates">Go</button>
+        </div>
+      </div>
+      <div id="work-chart"></div>
+      <div id="work-legend"></div>
+    </div>
+
+    <div id="watching-panel" class="panel hidden">
+      <div id="watching-container"></div>
+    </div>
+
+    <div id="notifications-panel" class="panel hidden">
+      <div id="notifications-container"></div>
+    </div>
+
+  </div>
+
+  <script src="api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
