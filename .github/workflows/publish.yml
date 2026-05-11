@@ -1,0 +1,63 @@
+name: Publish to Chrome Web Store
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create extension ZIP
+        run: |
+          zip -r extension.zip \
+            manifest.json \
+            api.js \
+            background.js \
+            popup.html popup.css popup.js \
+            options.html options.css options.js \
+            icon.svg \
+            icons/
+
+      - name: Get access token
+        id: auth
+        run: |
+          RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
+            --data-urlencode "client_id=${{ secrets.CHROME_CLIENT_ID }}" \
+            --data-urlencode "client_secret=${{ secrets.CHROME_CLIENT_SECRET }}" \
+            --data-urlencode "refresh_token=${{ secrets.CHROME_REFRESH_TOKEN }}" \
+            --data-urlencode "grant_type=refresh_token")
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r .access_token)
+          if [ "$ACCESS_TOKEN" = "null" ] || [ -z "$ACCESS_TOKEN" ]; then
+            echo "Failed to obtain access token"
+            exit 1
+          fi
+          echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Upload to Chrome Web Store
+        run: |
+          curl -s -X PUT \
+            "https://www.googleapis.com/upload/chromewebstore/v1.1/items/${{ secrets.CHROME_EXTENSION_ID }}" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.access_token }}" \
+            -H "x-goog-api-version: 2" \
+            -T extension.zip | jq .
+
+      - name: Publish to Chrome Web Store
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "https://www.googleapis.com/chromewebstore/v1.1/items/${{ secrets.CHROME_EXTENSION_ID }}/publish" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.access_token }}" \
+            -H "x-goog-api-version: 2" \
+            -H "Content-Length: 0")
+          echo "$RESPONSE" | jq .
+          STATUS=$(echo "$RESPONSE" | jq -r '.error.code // empty')
+          if [ "$STATUS" = "400" ]; then
+            echo "Extension uploaded successfully — publish skipped (item is in review)"
+          elif [ -n "$STATUS" ]; then
+            exit 1
+          fi
