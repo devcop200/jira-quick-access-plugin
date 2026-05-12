@@ -83,6 +83,9 @@ function renderIssues(issues) {
     const prioName   = f.priority?.name || 'Medium';
     const typeName   = f.issuetype?.name || '';
     const statusName = f.status?.name || '';
+    const ttEntry    = ttTracker[issue.key];
+    const hasActive  = ttEntry && (ttEntry.state === 'running' || ttEntry.state === 'paused');
+    const totalMs    = ttGetTotalMs(issue.key);
 
     return `
       <div class="issue-item" data-key="${issue.key}">
@@ -90,13 +93,14 @@ function renderIssues(issues) {
           ${issueTypeInitial(typeName)}
         </div>
         <div class="issue-body">
-          <div class="issue-key">${issue.key}</div>
+          <div class="issue-key">${issue.key}${totalMs > 0 ? `<span class="tt-time-chip" title="Time tracked with the plugin">${ttFormatMsCompact(totalMs)}</span>` : ''}</div>
           <div class="issue-summary" title="${escHtml(f.summary || '')}">${escHtml(f.summary || '(no summary)')}</div>
           <div class="issue-meta">
             <span class="status-badge ${statusClass(statusCat)}">${statusLabel(statusName)}</span>
             <span class="priority-dot ${priorityClass(prioName)}" title="${prioName}"></span>
           </div>
         </div>
+        <button class="tt-clock-btn${hasActive ? ' active' : ''}" data-tt-clock="${issue.key}" data-summary="${escHtml(f.summary || '')}" title="Track time">⏱</button>
         <button class="expand-btn" data-key="${issue.key}" title="Show details">›</button>
       </div>
       <div class="issue-detail" data-detail-key="${issue.key}"></div>
@@ -107,7 +111,7 @@ function renderIssues(issues) {
 function bindIssueClicks(container) {
   container.querySelectorAll('.issue-item').forEach(el => {
     el.addEventListener('click', e => {
-      if (e.target.closest('.expand-btn')) return;
+      if (e.target.closest('.expand-btn') || e.target.closest('.tt-clock-btn')) return;
       openIssue(el.dataset.key);
     });
   });
@@ -116,6 +120,22 @@ function bindIssueClicks(container) {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       toggleDetail(btn.dataset.key, container);
+    });
+  });
+
+  container.querySelectorAll('.tt-clock-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const key     = btn.dataset.ttClock;
+      const summary = btn.dataset.summary;
+      const entry   = ttTracker[key];
+      if (!entry || entry.state === 'stopped') {
+        ttStart(key, summary);
+      } else if (entry.state === 'running') {
+        ttPause(key);
+      } else {
+        ttStart(key, summary);
+      }
     });
   });
 }
@@ -143,7 +163,9 @@ async function toggleDetail(key, container) {
 
   if (detailCache.has(key)) {
     detailEl.innerHTML = buildDetailPanel(detailCache.get(key));
+    appendTTDetailSection(key, detailEl);
     bindDetailLinks(detailEl);
+    bindTTDetailNotes(key, detailEl);
     return;
   }
 
@@ -153,7 +175,9 @@ async function toggleDetail(key, container) {
     const data = await JiraAPI.getIssueDetails(key);
     detailCache.set(key, data);
     detailEl.innerHTML = buildDetailPanel(data);
+    appendTTDetailSection(key, detailEl);
     bindDetailLinks(detailEl);
+    bindTTDetailNotes(key, detailEl);
   } catch (err) {
     detailEl.innerHTML = `<div class="state-msg error-msg" style="padding:12px 14px">${friendlyError(err)}</div>`;
   }
@@ -216,7 +240,6 @@ function buildDetailPanel(data) {
         </div>
         <div class="dp-bar-label${over ? ' over' : ''}">${pct}% of estimate${over ? ' — over budget' : ''}</div>`;
     } else {
-      // Only one of the two is present — fall back to plain rows
       timeHtml += '<div class="dp-label">Time Tracking</div>';
       if (orig  != null) timeHtml += `<div class="dp-time-row"><span>Estimate</span><strong>${formatSeconds(orig)}</strong></div>`;
       if (spent != null) timeHtml += `<div class="dp-time-row"><span>Logged</span><strong>${formatSeconds(spent)}</strong></div>`;
@@ -286,6 +309,53 @@ function bindDetailLinks(detailEl) {
   });
 }
 
+function appendTTDetailSection(key, detailEl) {
+  const e = ttTracker[key];
+  if (!e || (e.state === 'stopped' && !e.sessions.length)) return;
+
+  const dp = detailEl.querySelector('.dp-inner');
+  if (!dp) return;
+
+  const isActive = e.state === 'running' || e.state === 'paused';
+  let html = '<div class="dp-section"><div class="dp-label">Local Time Tracking</div>';
+
+  if (isActive) {
+    html += `<textarea class="tt-notes-textarea" data-dp-notes-ta="${escHtml(key)}" placeholder="Session notes…" style="width:100%;box-sizing:border-box">${escHtml(e.currentNotes || '')}</textarea>
+    <div class="tt-notes-footer"><button class="tt-notes-save" data-dp-save="${escHtml(key)}">Save</button></div>`;
+  }
+
+  if (e.sessions.length) {
+    html += `<div class="dp-label" style="margin-top:4px">Session history</div><div class="tt-session-history" data-history-key="${escHtml(key)}">`;
+    html += ttBuildSessionHistoryHtml(e, key);
+    html += '</div>';
+  }
+
+  html += '</div>';
+  dp.insertAdjacentHTML('beforeend', html);
+}
+
+let ttNotesDebounce = null;
+
+function bindTTDetailNotes(key, detailEl) {
+  detailEl.querySelectorAll('[data-dp-notes-ta]').forEach(ta => {
+    ta.addEventListener('input', () => {
+      clearTimeout(ttNotesDebounce);
+      ttNotesDebounce = setTimeout(() => ttSetNotes(ta.dataset.dpNotesTa, ta.value), 500);
+    });
+  });
+
+  detailEl.querySelectorAll('[data-dp-save]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ta = detailEl.querySelector(`[data-dp-notes-ta="${btn.dataset.dpSave}"]`);
+      if (ta) ttSetNotes(btn.dataset.dpSave, ta.value);
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => { btn.textContent = 'Save'; }, 1500);
+    });
+  });
+
+  bindSessionHistoryEvents(detailEl);
+}
+
 // ── Tab switching ─────────────────────────────────────────────────────────────
 
 const tabBtns = document.querySelectorAll('.tab');
@@ -351,7 +421,6 @@ function renderFilterBar() {
   const sorted = presentStatuses.sort((a, b) => {
     const ai = WORKFLOW_ORDER.indexOf(a);
     const bi = WORKFLOW_ORDER.indexOf(b);
-    // Known statuses in workflow order; unknowns go to the end alphabetically
     if (ai === -1 && bi === -1) return a.localeCompare(b);
     if (ai === -1) return 1;
     if (bi === -1) return -1;
@@ -389,7 +458,13 @@ function applyFilter() {
     ? allIssues
     : allIssues.filter(i => i.fields.status?.name === activeFilter);
 
-  issuesContainer.innerHTML = renderIssues(filtered);
+  // TT section: all active timers regardless of status filter
+  const activeKeys = new Set(ttGetActive().map(([k]) => k));
+  ttRenderSection();
+
+  // Regular list: filtered issues excluding actively-tracked ones
+  const regular = filtered.filter(i => !activeKeys.has(i.key));
+  issuesContainer.innerHTML = renderIssues(regular);
   bindIssueClicks(issuesContainer);
 }
 
@@ -457,7 +532,6 @@ const CHART_COLORS = [
 let currentPeriod = 'today';
 
 function toLocalDate(d) {
-  // Returns YYYY-MM-DD in local time (not UTC)
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -502,7 +576,6 @@ function buildDonutSVG(data, total) {
   const segments = data.map((item, i) => {
     const color = CHART_COLORS[i % CHART_COLORS.length];
     if (data.length === 1) {
-      // Full circle, no dasharray needed
       return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}" />`;
     }
     const len = (item.totalSeconds / total) * circ;
@@ -589,7 +662,6 @@ document.querySelectorAll('.period-btn').forEach(btn => {
 
     const customDates = document.getElementById('custom-dates');
     if (currentPeriod === 'custom') {
-      // Pre-fill to last 7 days when opening custom
       const today = new Date();
       const weekAgo = new Date(today);
       weekAgo.setDate(weekAgo.getDate() - 6);
@@ -597,7 +669,6 @@ document.querySelectorAll('.period-btn').forEach(btn => {
       const dateTo   = document.getElementById('date-to');
       if (!dateFrom.value) dateFrom.value = toLocalDate(weekAgo);
       if (!dateTo.value)   dateTo.value   = toLocalDate(today);
-      // Constrain to today max
       dateFrom.max = toLocalDate(today);
       dateTo.max   = toLocalDate(today);
       customDates.classList.remove('hidden');
@@ -608,7 +679,6 @@ document.querySelectorAll('.period-btn').forEach(btn => {
   });
 });
 
-// Keep date-to min in sync with date-from
 document.getElementById('date-from').addEventListener('change', e => {
   document.getElementById('date-to').min = e.target.value;
 });
@@ -708,10 +778,8 @@ function renderAssignmentItem(item) {
 function updateAfterDismiss() {
   const remaining = notificationsContainer.querySelectorAll('.notif-item').length;
   updateNotificationsBadge(remaining);
-  // Keep extension icon badge in sync for mention dismissals
   const mentionItems = notificationsContainer.querySelectorAll('[data-dismiss-mention]').length;
   chrome.storage.local.set({ mentionCount: mentionItems });
-  // Remove section headers that now have no items below them
   notificationsContainer.querySelectorAll('.notif-section-header').forEach(header => {
     const next = header.nextElementSibling;
     if (!next || next.classList.contains('notif-section-header')) header.remove();
@@ -804,6 +872,562 @@ async function loadNotifications() {
   }
 }
 
+// ── Time Tracking ─────────────────────────────────────────────────────────────
+//
+// Storage key: 'timeTracking'
+// Shape: { [issueKey]: { state, accumulatedMs, lastResumeTs, currentSessionStart,
+//                        currentNotes, sessions[], summary } }
+// state: 'running' | 'paused' | 'stopped'
+// Sessions are completed start→stop cycles stored with notes.
+
+let ttTracker = {};
+let ttTickInterval = null;
+
+function ttSave() {
+  chrome.storage.local.set({ timeTracking: ttTracker });
+}
+
+function ttGetLiveMs(key) {
+  const e = ttTracker[key];
+  if (!e) return 0;
+  if (e.state === 'running' && e.lastResumeTs) {
+    return e.accumulatedMs + (Date.now() - e.lastResumeTs);
+  }
+  return e.accumulatedMs;
+}
+
+function ttGetTotalMs(key) {
+  const e = ttTracker[key];
+  if (!e) return 0;
+  const past = e.sessions.reduce((s, sess) => s + sess.durationMs, 0);
+  return past + (e.state !== 'stopped' ? ttGetLiveMs(key) : 0);
+}
+
+function ttFormatMs(ms) {
+  const s   = Math.floor(ms / 1000);
+  const h   = Math.floor(s / 3600);
+  const m   = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+  const sec = String(s % 60).padStart(2, '0');
+  return h > 0 ? `${h}:${m}:${sec}` : `${m}:${sec}`;
+}
+
+function ttFormatMsCompact(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+function ttGetActive() {
+  return Object.entries(ttTracker).filter(([, e]) => e.state === 'running' || e.state === 'paused');
+}
+
+function ttEnsureTick() {
+  if (ttTickInterval) return;
+  let ttAutoSaveTick = 0;
+  ttTickInterval = setInterval(() => {
+    if (!ttGetActive().length) {
+      clearInterval(ttTickInterval);
+      ttTickInterval = null;
+      return;
+    }
+    ttGetActive().filter(([, e]) => e.state === 'running').forEach(([key]) => {
+      const fmt = ttFormatMs(ttGetLiveMs(key));
+      document.querySelectorAll(`.tt-chip[data-key="${key}"] .tt-chip-counter`).forEach(el => { el.textContent = fmt; });
+      document.querySelectorAll(`.tt-section-counter[data-key="${key}"]`).forEach(el => { el.textContent = fmt; });
+      document.querySelectorAll(`.tt-overflow-counter[data-key="${key}"]`).forEach(el => { el.textContent = fmt; });
+    });
+    ttAutoSaveTick++;
+    if (ttAutoSaveTick >= 5) {
+      ttAutoSaveTick = 0;
+      let dirty = false;
+      document.querySelectorAll('[data-tt-notes-ta]').forEach(ta => {
+        const key = ta.dataset.ttNotesTa;
+        if (ttTracker[key] && ttTracker[key].currentNotes !== ta.value) {
+          ttTracker[key].currentNotes = ta.value;
+          dirty = true;
+        }
+      });
+      document.querySelectorAll('[data-dp-notes-ta]').forEach(ta => {
+        const key = ta.dataset.dpNotesTa;
+        if (ttTracker[key] && ttTracker[key].currentNotes !== ta.value) {
+          ttTracker[key].currentNotes = ta.value;
+          dirty = true;
+        }
+      });
+      document.querySelectorAll('.tt-session-notes-ta').forEach(ta => {
+        const key     = ta.dataset.sessionNotesKey;
+        const startTs = Number(ta.dataset.sessionNotesStart);
+        const e = ttTracker[key];
+        if (!e) return;
+        const sess = e.sessions.find(s => s.startTs === startTs);
+        if (sess && sess.notes !== ta.value) {
+          sess.notes = ta.value;
+          dirty = true;
+        }
+      });
+      if (dirty) ttSave();
+    }
+  }, 1000);
+}
+
+function ttStart(key, summary) {
+  // Auto-pause any currently running timer
+  for (const [k, e] of Object.entries(ttTracker)) {
+    if (e.state === 'running') {
+      e.accumulatedMs += Date.now() - e.lastResumeTs;
+      e.lastResumeTs = null;
+      e.state = 'paused';
+    }
+  }
+
+  const now = Date.now();
+  const ex  = ttTracker[key];
+
+  if (!ex || ex.state === 'stopped') {
+    ttTracker[key] = {
+      state: 'running',
+      accumulatedMs: 0,
+      lastResumeTs: now,
+      currentSessionStart: now,
+      currentNotes: '',
+      sessions: ex ? ex.sessions : [],
+      summary: summary || key,
+    };
+  } else {
+    ex.state = 'running';
+    ex.lastResumeTs = now;
+  }
+
+  ttSave();
+  ttRenderNavChips();
+  applyFilter();
+  ttEnsureTick();
+}
+
+function ttPause(key) {
+  const e = ttTracker[key];
+  if (!e || e.state !== 'running') return;
+  e.accumulatedMs += Date.now() - e.lastResumeTs;
+  e.lastResumeTs = null;
+  e.state = 'paused';
+  ttSave();
+  ttRenderNavChips();
+  ttUpdateRow(key);
+}
+
+function ttStop(key) {
+  const e = ttTracker[key];
+  if (!e) return;
+
+  const now = Date.now();
+  if (e.state === 'running' && e.lastResumeTs) {
+    e.accumulatedMs += now - e.lastResumeTs;
+  }
+  e.sessions.push({
+    startTs: e.currentSessionStart,
+    endTs: now,
+    durationMs: Math.max(60000, e.accumulatedMs),
+    notes: e.currentNotes || '',
+  });
+  e.state = 'stopped';
+  e.accumulatedMs = 0;
+  e.lastResumeTs = null;
+  e.currentNotes = '';
+  e.currentSessionStart = 0;
+
+  ttSave();
+  ttRenderNavChips();
+  applyFilter();
+}
+
+function ttSetNotes(key, notes) {
+  if (ttTracker[key]) {
+    ttTracker[key].currentNotes = notes;
+    ttSave();
+  }
+}
+
+function ttUpdateRow(key) {
+  const e = ttTracker[key];
+  if (!e) return;
+  const running = e.state === 'running';
+
+  const counter = document.querySelector(`.tt-section-counter[data-key="${key}"]`);
+  if (counter) {
+    counter.classList.toggle('paused', !running);
+    counter.textContent = ttFormatMs(ttGetLiveMs(key));
+  }
+  const playBtn = document.querySelector(`[data-tt-play="${key}"]`);
+  if (playBtn) {
+    playBtn.title   = running ? 'Pause' : 'Resume';
+    playBtn.textContent = running ? '⏸️' : '▶️';
+  }
+  const chipBtn = document.querySelector(`.tt-chip[data-key="${key}"] .tt-chip-btn`);
+  if (chipBtn) {
+    chipBtn.title       = running ? 'Pause' : 'Resume';
+    chipBtn.dataset.ttToggle = key;
+    chipBtn.textContent = running ? '⏸️' : '▶️';
+  }
+  const clockBtn = document.querySelector(`.tt-clock-btn[data-tt-clock="${key}"]`);
+  if (clockBtn) clockBtn.classList.toggle('active', true);
+}
+
+let ttOverflowOpen = false;
+let ttOverflowCloseHandler = null;
+
+function ttChipHtml(key, e) {
+  const running = e.state === 'running';
+  return `<div class="tt-chip ${running ? 'running' : 'paused'}" data-key="${key}">
+    <span class="tt-chip-key" data-chip-open="${key}">${escHtml(key)}</span>
+    <span class="tt-chip-counter">${ttFormatMs(ttGetLiveMs(key))}</span>
+    <button class="tt-chip-btn" data-tt-toggle="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸️' : '▶️'}</button>
+    <button class="tt-chip-btn" data-tt-chip-stop="${key}" title="Stop">⏹️</button>
+    <button class="tt-chip-btn" data-tt-chip-notes="${key}" title="Notes">📝</button>
+  </div>`;
+}
+
+function ttBindChipContainer(container) {
+  container.querySelectorAll('[data-tt-toggle]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const k = btn.dataset.ttToggle;
+      const entry = ttTracker[k];
+      if (!entry) return;
+      if (entry.state === 'running') ttPause(k);
+      else ttStart(k, entry.summary);
+    });
+  });
+  container.querySelectorAll('[data-tt-chip-stop]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      ttStop(btn.dataset.ttChipStop);
+    });
+  });
+  container.querySelectorAll('[data-tt-chip-notes]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      ttFocusNotes(btn.dataset.ttChipNotes);
+      ttCloseOverflow();
+    });
+  });
+  container.querySelectorAll('[data-chip-open]').forEach(span => {
+    span.addEventListener('click', ev => {
+      ev.stopPropagation();
+      openIssue(span.dataset.chipOpen);
+    });
+  });
+}
+
+function ttRenderNavChips() {
+  const container = document.getElementById('tt-chips');
+  if (!container) return;
+
+  const active = ttGetActive();
+  if (!active.length) {
+    container.innerHTML = '';
+    ttCloseOverflow();
+    return;
+  }
+
+  // Running timer always occupies the primary slot (never in overflow)
+  const running = active.filter(([, e]) => e.state === 'running');
+  const paused  = active.filter(([, e]) => e.state === 'paused');
+  // Show at most 1 chip (the running one if any, else first paused)
+  const sorted  = [...running, ...paused];
+  const visible = sorted.slice(0, 1);
+  const rest    = sorted.slice(1);
+
+  let html = visible.map(([key, e]) => ttChipHtml(key, e)).join('');
+  if (rest.length) {
+    html += `<button class="tt-overflow-btn" id="tt-overflow-btn">+${rest.length} ▾</button>`;
+  }
+
+  container.innerHTML = html;
+  ttBindChipContainer(container);
+
+  const overflowBtn = document.getElementById('tt-overflow-btn');
+  if (overflowBtn) {
+    overflowBtn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      ttToggleOverflow(rest, overflowBtn);
+    });
+  }
+
+  // Keep overflow panel in sync if it's currently open
+  if (ttOverflowOpen) {
+    if (rest.length) ttToggleOverflow(rest, null, true);
+    else ttCloseOverflow();
+  }
+}
+
+function ttToggleOverflow(entries, anchorEl, forceOpen = false) {
+  const panel = document.getElementById('tt-overflow-panel');
+  if (!panel) return;
+
+  if (ttOverflowOpen && !forceOpen) {
+    ttCloseOverflow();
+    return;
+  }
+
+  panel.innerHTML = entries.map(([key, e]) => {
+    const running = e.state === 'running';
+    return `<div class="tt-overflow-item ${running ? 'running' : ''}" data-key="${key}">
+      <span class="tt-overflow-key" data-chip-open="${key}">${escHtml(key)}</span>
+      <span class="tt-overflow-counter" data-key="${key}">${ttFormatMs(ttGetLiveMs(key))}</span>
+      <button class="tt-chip-btn" data-tt-toggle="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸️' : '▶️'}</button>
+      <button class="tt-chip-btn" data-tt-chip-stop="${key}" title="Stop">⏹️</button>
+      <button class="tt-chip-btn" data-tt-chip-notes="${key}" title="Notes">📝</button>
+    </div>`;
+  }).join('');
+
+  panel.classList.remove('hidden');
+  ttOverflowOpen = true;
+  ttBindChipContainer(panel);
+
+  if (!ttOverflowCloseHandler) {
+    ttOverflowCloseHandler = ev => {
+      if (!panel.contains(ev.target) && ev.target.id !== 'tt-overflow-btn') {
+        ttCloseOverflow();
+      }
+    };
+    setTimeout(() => document.addEventListener('click', ttOverflowCloseHandler), 0);
+  }
+}
+
+function ttCloseOverflow() {
+  const panel = document.getElementById('tt-overflow-panel');
+  if (panel) panel.classList.add('hidden');
+  ttOverflowOpen = false;
+  if (ttOverflowCloseHandler) {
+    document.removeEventListener('click', ttOverflowCloseHandler);
+    ttOverflowCloseHandler = null;
+  }
+}
+
+function ttFocusNotes(key) {
+  // Switch to My Issues tab if not already there
+  const myIssuesBtn = document.querySelector('.tab[data-tab="my-issues"]');
+  if (myIssuesBtn && !myIssuesBtn.classList.contains('active')) myIssuesBtn.click();
+  // Open the notes panel for this key in the TT section
+  const panel = document.querySelector(`.tt-notes-panel[data-notes-key="${key}"]`);
+  if (panel) {
+    panel.classList.remove('hidden');
+    panel.querySelector('textarea')?.focus();
+  }
+}
+
+function ttRenderSection() {
+  const section    = document.getElementById('tt-section');
+  const myTasksHdr = document.getElementById('tt-my-tasks-header');
+  if (!section) return;
+
+  const active = ttGetActive().sort(([, a], [, b]) => {
+    if (a.state === 'running' && b.state !== 'running') return -1;
+    if (b.state === 'running' && a.state !== 'running') return 1;
+    return 0;
+  });
+  if (!active.length) {
+    section.classList.add('hidden');
+    if (myTasksHdr) myTasksHdr.classList.add('hidden');
+    return;
+  }
+
+  section.innerHTML = '<div class="tt-section-label">Time Tracking</div>' +
+    active.map(([key, e]) => {
+      const running = e.state === 'running';
+      return `<div class="tt-issue-row" data-key="${key}">
+        <span class="tt-section-counter${running ? '' : ' paused'}" data-key="${key}">${ttFormatMs(ttGetLiveMs(key))}</span>
+        <div class="tt-issue-info">
+          <div class="tt-issue-key">${escHtml(key)}</div>
+          <div class="tt-issue-summary">${escHtml(e.summary || key)}</div>
+        </div>
+        <div class="tt-controls">
+          <button class="tt-btn" data-tt-play="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸️' : '▶️'}</button>
+          <button class="tt-btn stop" data-tt-stop="${key}" title="Stop">⏹️</button>
+          <button class="tt-btn" data-tt-notes="${key}" title="Notes">📝</button>
+        </div>
+      </div>
+      <div class="tt-notes-panel hidden" data-notes-key="${key}">
+        <textarea class="tt-notes-textarea" data-tt-notes-ta="${key}" placeholder="Session notes…">${escHtml(e.currentNotes || '')}</textarea>
+        <div class="tt-notes-footer"><button class="tt-notes-save" data-tt-save="${key}">Save</button></div>
+        ${ttRenderSessionHistory(key, e)}
+      </div>`;
+    }).join('');
+
+  section.classList.remove('hidden');
+  if (myTasksHdr) myTasksHdr.classList.remove('hidden');
+
+  bindTTSection(section);
+}
+
+function ttBuildSessionHistoryHtml(e, key) {
+  return e.sessions.slice().reverse().map(s => {
+    return `<div class="tt-session-entry-wrap" data-session-key="${escHtml(key)}" data-session-start="${s.startTs}">
+      <div class="tt-session-entry">
+        <span class="tt-session-duration">${ttFormatMsCompact(s.durationMs)}</span>
+        <span class="tt-session-date">${new Date(s.startTs).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+        <button class="tt-notes-toggle" data-session-toggle>▾ Notes</button>
+        <button class="tt-session-delete" title="Remove session">×</button>
+      </div>
+      <div class="tt-session-notes-body hidden">
+        <textarea class="tt-notes-textarea tt-session-notes-ta" data-session-notes-key="${escHtml(key)}" data-session-notes-start="${s.startTs}" placeholder="Session notes…">${escHtml(s.notes)}</textarea>
+        <div class="tt-notes-footer"><button class="tt-notes-save tt-session-notes-save" data-session-notes-key="${escHtml(key)}" data-session-notes-start="${s.startTs}">Save</button></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ttRenderSessionHistory(key, e) {
+  if (!e.sessions.length) return '';
+  return `<div class="tt-session-history" data-history-key="${escHtml(key)}"><div class="tt-session-label">Past sessions</div>${ttBuildSessionHistoryHtml(e, key)}</div>`;
+}
+
+function ttDeleteSession(key, startTs) {
+  const e = ttTracker[key];
+  if (!e) return;
+  e.sessions = e.sessions.filter(s => s.startTs !== startTs);
+  ttSave();
+}
+
+function ttRefreshSessionHistory(key) {
+  const e = ttTracker[key];
+  if (!e) return;
+  document.querySelectorAll(`.tt-session-history[data-history-key="${key}"]`).forEach(container => {
+    if (!e.sessions.length) {
+      container.remove();
+      return;
+    }
+    container.innerHTML = '<div class="tt-session-label">Past sessions</div>' + ttBuildSessionHistoryHtml(e, key);
+    bindSessionHistoryEvents(container);
+  });
+  // Update time chip on issue row (for stopped tickets in regular list)
+  const totalMs = ttGetTotalMs(key);
+  document.querySelectorAll(`.issue-item[data-key="${key}"] .issue-key`).forEach(el => {
+    let chip = el.querySelector('.tt-time-chip');
+    if (totalMs > 0) {
+      if (chip) chip.textContent = ttFormatMsCompact(totalMs);
+    } else if (chip) {
+      chip.remove();
+    }
+  });
+}
+
+function bindSessionHistoryEvents(container) {
+  container.querySelectorAll('[data-session-toggle]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const wrap = btn.closest('.tt-session-entry-wrap');
+      const body = wrap?.querySelector('.tt-session-notes-body');
+      if (!body) return;
+      const open = !body.classList.contains('hidden');
+      body.classList.toggle('hidden');
+      btn.textContent = open ? '▾ Notes' : '▴ Notes';
+    });
+  });
+
+  container.querySelectorAll('.tt-session-delete').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const wrap     = btn.closest('.tt-session-entry-wrap');
+      const key      = wrap?.dataset.sessionKey;
+      const startTs  = Number(wrap?.dataset.sessionStart);
+      if (!key || !startTs) return;
+      ttDeleteSession(key, startTs);
+      ttRefreshSessionHistory(key);
+    });
+  });
+
+  container.querySelectorAll('.tt-session-notes-save').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const key     = btn.dataset.sessionNotesKey;
+      const startTs = Number(btn.dataset.sessionNotesStart);
+      const ta      = btn.closest('.tt-session-notes-body')?.querySelector('.tt-session-notes-ta');
+      if (!key || !startTs || !ta) return;
+      const e = ttTracker[key];
+      if (!e) return;
+      const sess = e.sessions.find(s => s.startTs === startTs);
+      if (!sess) return;
+      sess.notes = ta.value;
+      ttSave();
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => { btn.textContent = 'Save'; }, 1500);
+    });
+  });
+}
+
+function bindTTSection(container) {
+  container.querySelectorAll('[data-tt-play]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const key = btn.dataset.ttPlay;
+      const e   = ttTracker[key];
+      if (!e) return;
+      if (e.state === 'running') ttPause(key);
+      else ttStart(key, e.summary);
+    });
+  });
+
+  container.querySelectorAll('[data-tt-stop]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const key = btn.dataset.ttStop;
+      const row = btn.closest('.tt-issue-row');
+      if (!row) return;
+
+      const existing = row.querySelector('.tt-stop-confirm');
+      if (existing) { existing.remove(); return; }
+
+      const confirmEl = document.createElement('div');
+      confirmEl.className = 'tt-stop-confirm';
+      confirmEl.innerHTML = 'Stop timer? <button class="tt-stop-yes">Stop</button><button class="tt-stop-no">Cancel</button>';
+      row.appendChild(confirmEl);
+
+      confirmEl.querySelector('.tt-stop-yes').addEventListener('click', e => {
+        e.stopPropagation();
+        ttStop(key);
+      });
+      confirmEl.querySelector('.tt-stop-no').addEventListener('click', e => {
+        e.stopPropagation();
+        confirmEl.remove();
+      });
+    });
+  });
+
+  container.querySelectorAll('[data-tt-notes]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const key   = btn.dataset.ttNotes;
+      const panel = container.querySelector(`.tt-notes-panel[data-notes-key="${key}"]`);
+      if (panel) panel.classList.toggle('hidden');
+    });
+  });
+
+  container.querySelectorAll('[data-tt-notes-ta]').forEach(ta => {
+    ta.addEventListener('input', () => {
+      const key = ta.dataset.ttNotesTa;
+      clearTimeout(ttNotesDebounce);
+      ttNotesDebounce = setTimeout(() => ttSetNotes(key, ta.value), 500);
+    });
+  });
+
+  container.querySelectorAll('[data-tt-save]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const key = btn.dataset.ttSave;
+      const ta  = container.querySelector(`[data-tt-notes-ta="${key}"]`);
+      if (ta) ttSetNotes(key, ta.value);
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => { btn.textContent = 'Save'; }, 1500);
+    });
+  });
+
+  bindSessionHistoryEvents(container);
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
@@ -818,9 +1442,6 @@ async function init() {
     return;
   }
 
-  // Verify the browser has granted host permission for the stored URL.
-  // This can be missing if the user hasn't re-saved Settings since the
-  // extension was updated to use optional_host_permissions.
   const hasPermission = await chrome.permissions.contains({ origins: [`${jiraUrl}/*`] });
   if (!hasPermission) {
     notConfigured.classList.remove('hidden');
@@ -833,7 +1454,6 @@ async function init() {
   notConfigured.classList.add('hidden');
   mainContent.classList.remove('hidden');
 
-  // Show username async (non-blocking)
   JiraAPI.getCurrentUser()
     .then(u => {
       const label = document.getElementById('user-label');
@@ -841,17 +1461,22 @@ async function init() {
     })
     .catch(() => {});
 
-  // Seed notifications badge from last known counts (no extra API call)
   chrome.storage.local.get(
     ['watchCount', 'dismissedReturned', 'mentionCount', 'pendingAssignments'],
     ({ watchCount = 0, dismissedReturned = [], mentionCount = 0, pendingAssignments = [] }) => {
-      const returnedCount    = Math.max(0, watchCount - dismissedReturned.length);
-      const notifCount       = returnedCount + (mentionCount || 0) + pendingAssignments.length;
+      const returnedCount = Math.max(0, watchCount - dismissedReturned.length);
+      const notifCount    = returnedCount + (mentionCount || 0) + pendingAssignments.length;
       if (notifCount > 0) updateNotificationsBadge(notifCount);
     }
   );
 
-  loadMyIssues();
+  // Load persisted time tracking state before rendering issues
+  chrome.storage.local.get('timeTracking', d => {
+    ttTracker = d.timeTracking || {};
+    ttRenderNavChips();
+    if (ttGetActive().length) ttEnsureTick();
+    loadMyIssues();
+  });
 }
 
 init();

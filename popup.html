@@ -11,6 +11,7 @@
       <span>Jira</span>
       <span class="user-label" id="user-label"></span>
     </div>
+    <div id="tt-chips"></div>
     <div class="header-right">
       <button class="icon-btn" id="refresh-btn" title="Refresh">↻</button>
       <button class="icon-btn" id="settings-btn" title="Settings">⚙</button>
@@ -33,6 +34,8 @@
 
     <div id="my-issues-panel" class="panel">
       <div id="filter-bar" class="hidden"></div>
+      <div id="tt-section" class="hidden"></div>
+      <div id="tt-my-tasks-header" class="tt-my-tasks-label hidden">My Tasks</div>
       <div id="issues-container"></div>
     </div>
 
@@ -72,6 +75,7 @@
 
   </div>
 
+  <div id="tt-overflow-panel" class="hidden"></div>
   <script src="api.js"></script>
   <script src="popup.js"></script>
 </body>
