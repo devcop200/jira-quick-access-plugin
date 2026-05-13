@@ -10,7 +10,7 @@
 
 ## Issue list
 
-- [ ] Expand toggle button: replace current rectangular shape + rotation with a circle; on press change background color only, no rotation animation
+- [x] Expand toggle button: replace current rectangular shape + rotation with a circle; on press change background color only, no rotation animation
 
 ## My Issues
 
@@ -19,6 +19,18 @@
 - [ ] Issue type badge colors must be distinct per type:
       S (Story) → green, T (Task) → blue, B (Bug) → red, E (Epic) → purple, Sub-task → light blue, etc.
       Currently all use `issueTypeColor()` in popup.js but the initials mapping ("S", "T") needs to be consistent
+
+## Notifications / Returned
+
+- [ ] Document recommended watch JQL for "returned from stage" use cases, e.g.
+      `status changed to "In Progress" FROM "Code Review" AND assignee = currentUser()`
+      The plugin only knows the current ticket status — it cannot show which stage a ticket was returned from
+      unless the JQL itself encodes the transition.
+
+## UI / Branding
+
+- [ ] Add extension icon to the blue header navbar in the popup (next to the "Jira" title)
+- [ ] Dark mode — honour `prefers-color-scheme: dark`; define a dark palette for the popup and options page
 
 ## Logged Work
 
