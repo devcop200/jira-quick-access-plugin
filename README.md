@@ -12,6 +12,18 @@ A Chrome extension for fast, focused access to a self-hosted Jira instance (Serv
 | **Watching** | Issues you are watching (optionally hiding Done tickets) |
 | **Notifications** | Unified feed of Returned tickets, new Assignments, and Mentions — each dismissible |
 
+### Local time tracking
+Track time spent on any ticket directly from the popup — no Jira access required:
+
+- **Clock button** on every issue row starts or pauses a timer
+- **Time Tracking section** appears above My Issues showing all active timers; the running one is always first
+- **Navbar chip** shows the running timer in red with inline pause / stop / notes controls; additional timers collapse into a `+N` overflow menu
+- Starting a new timer **auto-pauses** the currently running one — only one timer runs at a time
+- **Session notes** — write notes per session with auto-save every 5 seconds and an explicit Save button
+- **Session history** — every stopped session is saved with its duration, date, and notes; notes are editable after the fact; individual sessions can be deleted
+- Minimum session duration of **1 minute** (stopping at 45 s records 1 m)
+- All data is stored locally in `chrome.storage.local` — nothing is sent to Jira
+
 ### Background polling (every 5 min)
 - Checks your **Returned Tickets** JQL filter and notifies when the count rises
 - Detects new **Assignments** and fires a desktop notification
@@ -53,7 +65,7 @@ The extension authenticates with a **Personal Access Token** sent as a `Bearer` 
 
 | Permission | Why |
 |------------|-----|
-| `storage` | Persist settings, dismissed notifications, and poll state |
+| `storage` | Persist settings, dismissed notifications, poll state, and local time tracking data |
 | `alarms` | Schedule the 5-minute background poll |
 | `notifications` | Show desktop notifications |
 | `host_permissions` for your Jira URL | Make authenticated API calls to the REST API |
