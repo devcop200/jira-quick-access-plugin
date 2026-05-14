@@ -246,3 +246,29 @@ saveDefaultsBtn.addEventListener('click', () => {
 });
 
 loadProjectsForDefaults();
+
+// ── Appearance / Theme ─────────────────────────────────────────────────────────
+
+const themeSelect = document.getElementById('theme-select');
+
+function applyTheme(theme) {
+  const html = document.documentElement;
+  if (theme === 'dark') {
+    html.classList.add('dark');
+  } else if (theme === 'light') {
+    html.classList.remove('dark');
+  } else {
+    html.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+}
+
+chrome.storage.local.get('theme', ({ theme }) => {
+  themeSelect.value = theme || 'auto';
+});
+
+themeSelect.addEventListener('change', () => {
+  const theme = themeSelect.value;
+  chrome.storage.local.set({ theme });
+  localStorage.setItem('jqa-theme', theme);
+  applyTheme(theme);
+});

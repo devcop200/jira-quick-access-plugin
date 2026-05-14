@@ -617,14 +617,9 @@ function getPeriodDates() {
     d.setDate(d.getDate() - 29);
     return { start: toLocalDate(d), end: toLocalDate(today) };
   }
-  const fromY = document.getElementById('date-from-year').value;
-  const fromM = document.getElementById('date-from-month').value;
-  const toY   = document.getElementById('date-to-year').value;
-  const toM   = document.getElementById('date-to-month').value;
-  const lastDay = new Date(parseInt(toY), parseInt(toM), 0).getDate();
   return {
-    start: `${fromY}-${fromM}-01`,
-    end:   `${toY}-${toM}-${String(lastDay).padStart(2, '0')}`,
+    start: document.getElementById('date-from').value,
+    end:   document.getElementById('date-to').value,
   };
 }
 
@@ -722,44 +717,6 @@ async function loadLoggedWork() {
   }
 }
 
-function initDateSelects() {
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const today = new Date();
-  const curYear = today.getFullYear();
-
-  ['date-from-month','date-to-month'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (sel.options.length) return;
-    MONTHS.forEach((m, i) => {
-      const opt = document.createElement('option');
-      opt.value = String(i + 1).padStart(2, '0');
-      opt.textContent = m;
-      sel.appendChild(opt);
-    });
-  });
-
-  ['date-from-year','date-to-year'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (sel.options.length) return;
-    for (let y = curYear - 2; y <= curYear; y++) {
-      const opt = document.createElement('option');
-      opt.value = String(y);
-      opt.textContent = String(y);
-      sel.appendChild(opt);
-    }
-  });
-
-  const fromM = document.getElementById('date-from-month');
-  if (fromM.dataset.initialized) return;
-  const monthAgo = new Date(today);
-  monthAgo.setMonth(monthAgo.getMonth() - 1);
-  document.getElementById('date-from-month').value = String(monthAgo.getMonth() + 1).padStart(2, '0');
-  document.getElementById('date-from-year').value  = String(monthAgo.getFullYear());
-  document.getElementById('date-to-month').value   = String(today.getMonth() + 1).padStart(2, '0');
-  document.getElementById('date-to-year').value    = String(curYear);
-  fromM.dataset.initialized = '1';
-}
-
 // Period buttons
 document.querySelectorAll('.period-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -769,13 +726,25 @@ document.querySelectorAll('.period-btn').forEach(btn => {
 
     const customDates = document.getElementById('custom-dates');
     if (currentPeriod === 'custom') {
-      initDateSelects();
+      const today = new Date();
+      const weekAgo = new Date(today);
+      weekAgo.setDate(weekAgo.getDate() - 6);
+      const dateFrom = document.getElementById('date-from');
+      const dateTo   = document.getElementById('date-to');
+      if (!dateFrom.value) dateFrom.value = toLocalDate(weekAgo);
+      if (!dateTo.value)   dateTo.value   = toLocalDate(today);
+      dateFrom.max = toLocalDate(today);
+      dateTo.max   = toLocalDate(today);
       customDates.classList.remove('hidden');
     } else {
       customDates.classList.add('hidden');
       loadLoggedWork();
     }
   });
+});
+
+document.getElementById('date-from').addEventListener('change', e => {
+  document.getElementById('date-to').min = e.target.value;
 });
 
 document.getElementById('apply-custom-dates').addEventListener('click', loadLoggedWork);

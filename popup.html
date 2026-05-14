@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" href="popup.css" />
+  <script>(function(){var t=localStorage.getItem('jqa-theme');if(t==='dark'){document.documentElement.classList.add('dark');}else if(!t||t==='auto'){if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.classList.add('dark');}})();</script>
 </head>
 <body>
   <header>
@@ -119,11 +120,9 @@
       </div>
       <div id="custom-dates" class="hidden">
         <div class="date-range-row">
-          <select class="date-sel-month" id="date-from-month"></select>
-          <select class="date-sel-year" id="date-from-year"></select>
+          <input type="date" id="date-from" />
           <span class="date-sep">–</span>
-          <select class="date-sel-month" id="date-to-month"></select>
-          <select class="date-sel-year" id="date-to-year"></select>
+          <input type="date" id="date-to" />
           <button class="btn-go" id="apply-custom-dates">Go</button>
         </div>
       </div>

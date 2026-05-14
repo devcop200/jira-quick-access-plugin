@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>Jira Quick Access – Settings</title>
   <link rel="stylesheet" href="options.css" />
+  <script>(function(){var t=localStorage.getItem('jqa-theme');if(t==='dark'){document.documentElement.classList.add('dark');}else if(!t||t==='auto'){if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.classList.add('dark');}})();</script>
 </head>
 <body>
   <div class="page-header">
@@ -54,10 +55,6 @@
           <textarea id="watch-jql" rows="3"
             placeholder="labels = my_watch_label AND assignee = currentUser() AND status != Done"></textarea>
           <p class="field-hint">Leave empty to disable background monitoring.</p>
-          <p class="field-hint">
-            Example — tickets returned from code review:<br/>
-            <code>status changed to "In Progress" FROM "Code Review" AND assignee = currentUser()</code>
-          </p>
         </div>
 
         <div class="actions">
@@ -87,6 +84,20 @@
           <span class="save-indicator" id="defaults-save-ind">✓ Saved</span>
         </div>
         <div class="status" id="defaults-status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Appearance</h2>
+
+        <div class="field">
+          <label for="theme-select">Theme</label>
+          <select id="theme-select" class="opt-select">
+            <option value="auto">System Default</option>
+            <option value="light">Always Light</option>
+            <option value="dark">Always Dark</option>
+          </select>
+          <p class="field-hint">Controls the colour scheme of the popup and settings page.</p>
+        </div>
       </div>
 
       <div class="card">

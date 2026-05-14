@@ -249,155 +249,154 @@ textarea:focus {
 /* ═══════════════════════════════════════════════════════════
    DARK MODE — appended block, no existing rules touched
    ═══════════════════════════════════════════════════════════ */
-@media (prefers-color-scheme: dark) {
 
-  /* ── Base ── */
-  body {
-    background: #1a1f2e;
-    color: #e2e8f4;
-  }
 
-  /* ── Page header (Jira blue bar) ── */
-  .page-header {
-    background: #003d99;
-  }
-
-  /* ── Settings container / cards ── */
-  .container { background: #1a1f2e; }
-
-  .card {
-    background: #242938;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  }
-
-  .card h2 {
-    color: #e2e8f4;
-    border-bottom-color: #343d52;
-  }
-
-  h3 { color: #e2e8f4; }
-
-  /* ── Labels & hints ── */
-  label {
-    color: #a3b2c4;
-  }
-
-  .field-hint { color: #6b7a8d; }
-
-  /* ── Inputs, textarea, select ── */
-  input[type="text"],
-  input[type="url"],
-  input[type="password"] {
-    background: #1a1f2e;
-    border-color: #343d52;
-    color: #e2e8f4;
-  }
-  input[type="text"]:focus,
-  input[type="url"]:focus,
-  input[type="password"]:focus {
-    border-color: #4c9aff;
-    background: #1a1f2e;
-    box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
-  }
-  input[type="text"]::placeholder,
-  input[type="url"]::placeholder,
-  input[type="password"]::placeholder { color: #6b7a8d; }
-
-  textarea {
-    background: #1a1f2e;
-    border-color: #343d52;
-    color: #e2e8f4;
-  }
-  textarea:focus {
-    border-color: #4c9aff;
-    background: #1a1f2e;
-    box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
-  }
-  textarea::placeholder { color: #6b7a8d; }
-
-  .opt-select {
-    background: #1a1f2e;
-    border-color: #343d52;
-    color: #e2e8f4;
-  }
-  .opt-select:focus {
-    border-color: #4c9aff;
-    background: #1a1f2e;
-    box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
-  }
-  .opt-select:disabled { color: #6b7a8d; }
-  .opt-select option   { background: #242938; color: #e2e8f4; }
-
-  /* ── Buttons ── */
-  .btn-primary {
-    background: #0052CC;
-    color: #fff;
-  }
-  .btn-primary:hover    { background: #0065FF; }
-  .btn-primary:disabled { background: #1a2a4a; color: #6b7a8d; }
-
-  .btn-secondary {
-    background: #242938;
-    border-color: #343d52;
-    color: #a3b2c4;
-  }
-  .btn-secondary:hover { background: #2d3347; }
-
-  .btn-go {
-    background: #0052CC;
-    color: #fff;
-  }
-  .btn-go:hover { background: #0065FF; }
-
-  /* ── Save indicator ── */
-  .save-indicator { color: #36b37e; }
-
-  /* ── Status messages ── */
-  .status.success {
-    background: #0a2518;
-    color: #36b37e;
-    border-color: #1a4d32;
-  }
-  .status.error {
-    background: #2d1010;
-    color: #ff6b6b;
-    border-color: #6b2a2a;
-  }
-  .status.info {
-    background: #0f2040;
-    color: #4c9aff;
-    border-color: #1a3a6b;
-  }
-
-  /* ── Toggle ── */
-  .toggle-label {
-    color: #e2e8f4;
-  }
-  .toggle-label input[type="checkbox"] {
-    accent-color: #4c9aff;
-  }
-
-  /* ── User card ── */
-  .user-name  { color: #e2e8f4; }
-  .user-email { color: #a3b2c4; }
-
-  /* ── Section description ── */
-  .section-desc { color: #a3b2c4; }
-
-  /* ── Scrollbars ── */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #1a1f2e;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #343d52;
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #4c5470;
-  }
-
+/* ── Base ── */
+html.dark body {
+  background: #1a1f2e;
+  color: #e2e8f4;
 }
+
+/* ── Page header (Jira blue bar) ── */
+html.dark .page-header {
+  background: #003d99;
+}
+
+/* ── Settings container / cards ── */
+html.dark .container { background: #1a1f2e; }
+
+html.dark .card {
+  background: #242938;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+html.dark .card h2 {
+  color: #e2e8f4;
+  border-bottom-color: #343d52;
+}
+
+html.dark h3 { color: #e2e8f4; }
+
+/* ── Labels & hints ── */
+html.dark label {
+  color: #a3b2c4;
+}
+
+html.dark .field-hint { color: #6b7a8d; }
+
+/* ── Inputs, textarea, select ── */
+html.dark input[type="text"],
+html.dark input[type="url"],
+html.dark input[type="password"] {
+  background: #1a1f2e;
+  border-color: #343d52;
+  color: #e2e8f4;
+}
+html.dark input[type="text"]:focus,
+html.dark input[type="url"]:focus,
+html.dark input[type="password"]:focus {
+  border-color: #4c9aff;
+  background: #1a1f2e;
+  box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
+}
+html.dark input[type="text"]::placeholder,
+html.dark input[type="url"]::placeholder,
+html.dark input[type="password"]::placeholder { color: #6b7a8d; }
+
+html.dark textarea {
+  background: #1a1f2e;
+  border-color: #343d52;
+  color: #e2e8f4;
+}
+html.dark textarea:focus {
+  border-color: #4c9aff;
+  background: #1a1f2e;
+  box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
+}
+html.dark textarea::placeholder { color: #6b7a8d; }
+
+html.dark .opt-select {
+  background: #1a1f2e;
+  border-color: #343d52;
+  color: #e2e8f4;
+}
+html.dark .opt-select:focus {
+  border-color: #4c9aff;
+  background: #1a1f2e;
+  box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
+}
+html.dark .opt-select:disabled { color: #6b7a8d; }
+html.dark .opt-select option { background: #242938; color: #e2e8f4; }
+
+/* ── Buttons ── */
+html.dark .btn-primary {
+  background: #0052CC;
+  color: #fff;
+}
+html.dark .btn-primary:hover { background: #0065FF; }
+html.dark .btn-primary:disabled { background: #1a2a4a; color: #6b7a8d; }
+
+html.dark .btn-secondary {
+  background: #242938;
+  border-color: #343d52;
+  color: #a3b2c4;
+}
+html.dark .btn-secondary:hover { background: #2d3347; }
+
+html.dark .btn-go {
+  background: #0052CC;
+  color: #fff;
+}
+html.dark .btn-go:hover { background: #0065FF; }
+
+/* ── Save indicator ── */
+html.dark .save-indicator { color: #36b37e; }
+
+/* ── Status messages ── */
+html.dark .status.success {
+  background: #0a2518;
+  color: #36b37e;
+  border-color: #1a4d32;
+}
+html.dark .status.error {
+  background: #2d1010;
+  color: #ff6b6b;
+  border-color: #6b2a2a;
+}
+html.dark .status.info {
+  background: #0f2040;
+  color: #4c9aff;
+  border-color: #1a3a6b;
+}
+
+/* ── Toggle ── */
+html.dark .toggle-label {
+  color: #e2e8f4;
+}
+html.dark .toggle-label input[type="checkbox"] {
+  accent-color: #4c9aff;
+}
+
+/* ── User card ── */
+html.dark .user-name { color: #e2e8f4; }
+html.dark .user-email { color: #a3b2c4; }
+
+/* ── Section description ── */
+html.dark .section-desc { color: #a3b2c4; }
+
+/* ── Scrollbars ── */
+html.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #1a1f2e;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #343d52;
+  border-radius: 3px;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4c5470;
+}
+

@@ -43,20 +43,11 @@
       S (Story) → green, T (Task) → blue, B (Bug) → red, E (Epic) → purple, Sub-task → light blue, etc.
       Currently all use `issueTypeColor()` in popup.js but the initials mapping ("S", "T") needs to be consistent
 
-## Notifications / Returned
-
-- [ ] Document recommended watch JQL for "returned from stage" use cases, e.g.
-      `status changed to "In Progress" FROM "Code Review" AND assignee = currentUser()`
-      The plugin only knows the current ticket status — it cannot show which stage a ticket was returned from
-      unless the JQL itself encodes the transition.
-
 ## UI / Branding
 
-- [ ] Add extension icon to the blue header navbar in the popup (next to the "Jira" title)
-- [ ] Dark mode — honour `prefers-color-scheme: dark`; define a dark palette for the popup and options page
+- [x] Add extension icon to the blue header navbar in the popup (next to the "Jira" title)
+- [x] Dark mode — configurable via Settings → Appearance (System Default / Always Light / Always Dark)
 
 ## Logged Work
 
-      - [ ] Date picker (custom period) is too slow — replace month-by-month navigation with a faster control
-            that jumps a full month per scroll/click (native `<input type="date">` is sluggish in the extension popup)
-      - [ ] Pie chart hover — show a tooltip with the ticket ID (and ideally time) when hovering over a slice
+      - [x] Pie chart hover — show a tooltip with the ticket ID and time when hovering over a slice
