@@ -1,3 +1,13 @@
+// ── Theme (applied first to minimise flash) ───────────────────────────────────
+chrome.storage.local.get('theme', ({ theme }) => {
+  if (theme === 'dark') document.documentElement.classList.add('dark');
+  else if (!theme || theme === 'auto') {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.classList.add('dark');
+  }
+  if (typeof updateThemeBtn === 'function') updateThemeBtn();
+});
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function statusClass(category) {
@@ -584,9 +594,7 @@ function updateThemeBtn() {
 themeBtn.addEventListener('click', () => {
   const goingDark = !document.documentElement.classList.contains('dark');
   document.documentElement.classList.toggle('dark', goingDark);
-  const theme = goingDark ? 'dark' : 'light';
-  localStorage.setItem('jqa-theme', theme);
-  chrome.storage.local.set({ theme });
+  chrome.storage.local.set({ theme: goingDark ? 'dark' : 'light' });
   updateThemeBtn();
 });
 
@@ -651,6 +659,9 @@ function formatSeconds(s) {
 }
 
 function buildDonutSVG(data, total) {
+  const isDark = document.documentElement.classList.contains('dark');
+  const labelColor = isDark ? '#e2e8f4' : '#172b4d';
+  const subColor   = isDark ? '#a3b2c4' : '#5e6c84';
   const cx = 80, cy = 80, r = 56, sw = 22;
   const circ = 2 * Math.PI * r;
   let offset = 0;
@@ -678,10 +689,10 @@ function buildDonutSVG(data, total) {
     ${segments}
     <text x="${cx}" y="${cy - 7}" text-anchor="middle"
       font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
-      font-size="17" font-weight="700" fill="#172b4d">${label}</text>
+      font-size="17" font-weight="700" fill="${labelColor}">${label}</text>
     <text x="${cx}" y="${cy + 13}" text-anchor="middle"
       font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
-      font-size="10" fill="#5e6c84">total logged</text>
+      font-size="10" fill="${subColor}">total logged</text>
   </svg>`;
 }
 

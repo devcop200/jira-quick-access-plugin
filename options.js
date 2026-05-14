@@ -1,3 +1,11 @@
+chrome.storage.local.get('theme', ({ theme }) => {
+  if (theme === 'dark') document.documentElement.classList.add('dark');
+  else if (!theme || theme === 'auto') {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.classList.add('dark');
+  }
+});
+
 const urlInput = document.getElementById('jira-url');
 const patInput = document.getElementById('jira-pat');
 const saveBtn = document.getElementById('save-btn');
