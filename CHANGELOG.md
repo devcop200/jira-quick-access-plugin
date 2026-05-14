@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1] — 2026-05-14
+
+### Fixed
+- **Log to Jira** button in session history is now the same size as the **▾ Notes** toggle (`font-size: 10px`, `padding: 1px 6px`, 1px border) — previously it was visually larger
+
+---
+
 ## [1.5.0] — 2026-05-14
 
 ### Added
