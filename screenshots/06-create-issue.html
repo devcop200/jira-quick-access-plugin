@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Screenshot 6 – Create Issue</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 1280px; height: 800px; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px; color: #172b4d; background: #fff;
+}
+
+header {
+  background: #0052CC; color: #fff;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 28px;
+  flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+.jira-dot { width: 28px; height: 28px; background: #fff; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #0052CC; font-weight: 900; font-size: 17px; flex-shrink: 0; }
+.user-label { font-size: 13px; opacity: 0.75; font-weight: 400; }
+.header-spacer { flex: 1; }
+.icon-btn { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 20px; padding: 4px 8px; flex-shrink: 0; cursor: pointer; }
+
+/* Create issue panel */
+.ci-panel {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  height: calc(800px - 56px);
+  overflow: hidden;
+}
+
+.ci-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid #ebecf0;
+  flex-shrink: 0;
+}
+.ci-form-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #172b4d;
+}
+.ci-close-btn {
+  background: none; border: none; color: #97a0af;
+  font-size: 28px; padding: 0 6px; cursor: pointer; line-height: 1;
+}
+
+.ci-form-body {
+  display: flex;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left column: main fields */
+.ci-col-main {
+  flex: 1;
+  padding: 18px 28px 18px 28px;
+  border-right: 1px solid #f4f5f7;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Right column: metadata */
+.ci-col-meta {
+  width: 360px;
+  padding: 18px 28px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fafbfc;
+}
+
+.ci-field { display: flex; flex-direction: column; gap: 5px; }
+.ci-label {
+  font-size: 11px; font-weight: 700; color: #7a869a;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.ci-input, .ci-select, .ci-textarea {
+  border: 1px solid #dfe1e6; border-radius: 4px;
+  padding: 8px 10px; font-size: 14px; color: #172b4d;
+  font-family: inherit; background: #fff; outline: none;
+  width: 100%;
+}
+.ci-input:focus, .ci-select:focus, .ci-textarea:focus {
+  border-color: #0052CC;
+  box-shadow: 0 0 0 2px rgba(0,82,204,0.12);
+}
+.ci-textarea { resize: none; min-height: 110px; line-height: 1.55; }
+.ci-summary-input { font-size: 16px; font-weight: 500; }
+
+/* Tags */
+.ci-tags-wrap {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  border: 1px solid #dfe1e6; border-radius: 4px; padding: 6px 8px;
+  min-height: 38px; background: #fff;
+}
+.ci-tag-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #0052CC; color: #fff;
+  font-size: 12px; font-weight: 600;
+  padding: 3px 10px; border-radius: 12px;
+}
+.ci-tags-text {
+  border: none; outline: none; font-size: 13px; color: #172b4d;
+  font-family: inherit; background: transparent; flex: 1; min-width: 80px;
+}
+
+/* Advanced */
+.ci-advanced-btn {
+  background: none; border: none; color: #0052CC; font-size: 13px;
+  font-weight: 600; cursor: pointer; padding: 0; text-align: left;
+  display: flex; align-items: center; gap: 4px;
+}
+.ci-link-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px;
+}
+.ci-link-select {
+  border: 1px solid #dfe1e6; border-radius: 4px;
+  padding: 7px 10px; font-size: 13px; color: #172b4d;
+  font-family: inherit; background: #fff; width: 200px;
+}
+.ci-link-input {
+  flex: 1; border: 1px solid #dfe1e6; border-radius: 4px;
+  padding: 7px 10px; font-size: 13px; color: #172b4d;
+  font-family: inherit; background: #fff;
+}
+.ci-link-key { color: #0052CC; font-weight: 600; font-size: 12px; }
+.ci-link-sum { color: #172b4d; font-size: 13px; }
+
+/* Footer */
+.ci-footer {
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  padding: 14px 28px;
+  border-top: 1px solid #ebecf0;
+  background: #fff;
+  flex-shrink: 0;
+}
+.ci-btn-cancel {
+  background: none; border: 1px solid #dfe1e6; border-radius: 4px;
+  padding: 8px 20px; font-size: 14px; font-weight: 500; color: #42526e;
+  cursor: pointer;
+}
+.ci-btn-create {
+  background: #0052CC; border: none; border-radius: 4px;
+  padding: 8px 24px; font-size: 14px; font-weight: 600; color: #fff;
+  cursor: pointer;
+}
+
+/* Assignee avatar row */
+.assignee-row {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid #dfe1e6; border-radius: 4px; padding: 6px 10px;
+  background: #fff;
+}
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: #0052CC; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.assignee-name { font-size: 14px; color: #172b4d; }
+
+/* Half-width inputs */
+.ci-half { display: flex; gap: 12px; }
+.ci-half .ci-field { flex: 1; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <span style="width:28px;height:28px;background:#fff;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#0052CC;font-weight:900;font-size:17px;flex-shrink:0">J</span>
+      <span>Jira</span>
+      <span class="user-label">Alex Johnson</span>
+    </div>
+    <div class="header-spacer"></div>
+    <div style="display:flex;gap:4px;flex-shrink:0">
+      <span class="icon-btn" style="font-weight:400;font-size:22px">+</span>
+      <span class="icon-btn">↻</span>
+      <span class="icon-btn">☾</span>
+      <span class="icon-btn">⚙</span>
+    </div>
+  </header>
+
+  <div class="ci-panel">
+    <div class="ci-form-header">
+      <span class="ci-form-title">Create Issue</span>
+      <button class="ci-close-btn">×</button>
+    </div>
+
+    <div class="ci-form-body">
+      <!-- Main left column -->
+      <div class="ci-col-main">
+        <div class="ci-field">
+          <label class="ci-label">Summary *</label>
+          <input class="ci-input ci-summary-input" type="text" value="Set up monitoring alerts for payment service" />
+        </div>
+
+        <div class="ci-field">
+          <label class="ci-label">Description</label>
+          <textarea class="ci-textarea">Configure Grafana/Prometheus alerts for:
+• Payment gateway latency > 500 ms
+• Error rate > 2% over 5-minute window
+• Queue depth > 1 000 messages
+
+Notify on-call via PagerDuty. Reference existing alert runbook in Confluence.</textarea>
+        </div>
+
+        <div class="ci-field">
+          <label class="ci-label">Labels</label>
+          <div class="ci-tags-wrap">
+            <span class="ci-tag-chip">backend</span>
+            <span class="ci-tag-chip">monitoring</span>
+            <span class="ci-tag-chip">payments</span>
+            <input class="ci-tags-text" type="text" placeholder="Add label…" />
+          </div>
+        </div>
+
+        <div>
+          <button class="ci-advanced-btn">Advanced ▾</button>
+          <div style="margin-top:14px">
+            <div class="ci-half">
+              <div class="ci-field">
+                <label class="ci-label">Estimate</label>
+                <input class="ci-input" type="text" value="4h" />
+              </div>
+              <div class="ci-field">
+                <label class="ci-label">Remaining Estimate</label>
+                <input class="ci-input" type="text" value="4h" />
+              </div>
+            </div>
+            <div class="ci-field" style="margin-top:14px">
+              <label class="ci-label">Linked Issues</label>
+              <div class="ci-link-row">
+                <select class="ci-link-select">
+                  <option selected>relates to</option>
+                  <option>blocks</option>
+                  <option>is blocked by</option>
+                </select>
+                <div style="flex:1;border:1px solid #0052CC;border-radius:4px;padding:7px 10px;font-size:13px;box-shadow:0 0 0 2px rgba(0,82,204,0.12)">
+                  <span class="ci-link-key">PROJ-388</span>
+                  <span style="color:#97a0af;margin:0 4px">—</span>
+                  <span class="ci-link-sum">API rate limiting implementation for public endpoints</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right metadata column -->
+      <div class="ci-col-meta">
+        <div class="ci-field">
+          <label class="ci-label">Project *</label>
+          <select class="ci-select">
+            <option selected>Main Project (PROJ)</option>
+            <option>Infrastructure (INFRA)</option>
+            <option>Mobile (MOB)</option>
+          </select>
+        </div>
+
+        <div class="ci-field">
+          <label class="ci-label">Issue Type *</label>
+          <select class="ci-select">
+            <option>Story</option>
+            <option selected>Task</option>
+            <option>Bug</option>
+            <option>Epic</option>
+          </select>
+        </div>
+
+        <div class="ci-field">
+          <label class="ci-label">Assignee</label>
+          <div class="assignee-row">
+            <div class="avatar">AJ</div>
+            <span class="assignee-name">Alex Johnson</span>
+          </div>
+        </div>
+
+        <div class="ci-field">
+          <label class="ci-label">Priority</label>
+          <select class="ci-select">
+            <option>Highest</option>
+            <option>High</option>
+            <option selected>Medium</option>
+            <option>Low</option>
+          </select>
+        </div>
+
+        <div class="ci-field">
+          <label class="ci-label">Sprint</label>
+          <select class="ci-select">
+            <option selected>Sprint 24 (active)</option>
+            <option>Sprint 25</option>
+            <option>Backlog</option>
+          </select>
+        </div>
+
+        <div class="ci-field">
+          <label class="ci-label">Epic Link</label>
+          <select class="ci-select">
+            <option selected>Platform Observability (PROJ-390)</option>
+            <option>Auth Modernisation (PROJ-380)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="ci-footer">
+      <button class="ci-btn-cancel">Cancel</button>
+      <button class="ci-btn-create">Create</button>
+    </div>
+  </div>
+</body>
+</html>
