@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Screenshot 2 – Notifications</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 640px; height: 400px; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px; color: #172b4d;
+  background: #fff;
+}
+.scale-wrap { width: 1280px; height: 800px; transform: scale(0.5); transform-origin: top left; overflow: hidden; }
+
+header {
+  background: #0052CC; color: #fff;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px;
+}
+.header-left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+.jira-dot { width: 28px; height: 28px; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #0052CC; font-weight: 900; font-size: 17px; }
+.user-label { font-size: 13px; opacity: 0.75; font-weight: 400; }
+.icon-btn { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 20px; padding: 4px 8px; }
+
+.tabs { display: flex; border-bottom: 2px solid #ebecf0; }
+.tab { background: none; border: none; padding: 14px 24px; font-size: 15px; font-weight: 500; color: #5e6c84; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.tab.active { color: #0052CC; border-bottom-color: #0052CC; }
+.tab-badge { display: inline-block; background: #DE350B; color: #fff; font-size: 11px; font-weight: 700; border-radius: 10px; padding: 1px 6px; margin-left: 5px; }
+
+.section-header {
+  padding: 8px 28px; font-size: 11px; font-weight: 700; color: #7a869a;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  background: #f4f5f7; border-bottom: 1px solid #ebecf0;
+  border-top: 1px solid #ebecf0;
+}
+.notif-item { padding: 14px 28px; border-bottom: 1px solid #f4f5f7; }
+.notif-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.badge { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+.badge-ret  { background: #ffebe6; color: #bf2600; }
+.badge-asgn { background: #e3fcef; color: #006644; }
+.badge-men  { background: #deebff; color: #0052cc; }
+.notif-key { font-size: 12px; color: #0052CC; font-weight: 600; flex-shrink: 0; }
+.notif-summary { flex: 1; font-size: 15px; color: #172b4d; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.notif-dismiss { margin-left: auto; background: none; border: none; color: #c1c7d0; font-size: 22px; padding: 0 3px; }
+.notif-meta { font-size: 12px; color: #7a869a; margin-bottom: 4px; }
+.notif-body { font-size: 13px; color: #5e6c84; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="scale-wrap">
+  <header>
+    <div class="header-left">
+      <span style="width:28px;height:28px;background:#fff;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#0052CC;font-weight:900;font-size:17px;flex-shrink:0">J</span>
+      <span>Jira Quick Access</span>
+      <span class="user-label">Alex Johnson</span>
+    </div>
+    <div style="display:flex;gap:4px">
+      <span class="icon-btn">↻</span>
+      <span class="icon-btn">☾</span>
+      <span class="icon-btn">⚙</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab">My Issues</button>
+    <button class="tab">Search</button>
+    <button class="tab">Logged Work</button>
+    <button class="tab">Watching</button>
+    <button class="tab active">Notifications<span class="tab-badge">8</span></button>
+  </div>
+
+  <div class="section-header">Returned · 2</div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-ret">Returned</span>
+      <span class="notif-key">PROJ-388</span>
+      <span class="notif-summary">API rate limiting implementation for public endpoints</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">In Progress</div>
+  </div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-ret">Returned</span>
+      <span class="notif-key">PROJ-412</span>
+      <span class="notif-summary">Fix broken image upload on Safari 16</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">In Progress</div>
+  </div>
+
+  <div class="section-header">Assignments · 3</div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-asgn">Assigned</span>
+      <span class="notif-key">PROJ-491</span>
+      <span class="notif-summary">Set up monitoring alerts for payment service</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">To Do</div>
+  </div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-asgn">Assigned</span>
+      <span class="notif-key">PROJ-489</span>
+      <span class="notif-summary">Write unit tests for the new authentication middleware</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">To Do</div>
+  </div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-asgn">Assigned</span>
+      <span class="notif-key">PROJ-494</span>
+      <span class="notif-summary">Integrate Sentry error tracking into the mobile app</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">To Do</div>
+  </div>
+
+  <div class="section-header">Mentions · 3</div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-men">Mention</span>
+      <span class="notif-key">PROJ-463</span>
+      <span class="notif-summary">Refactor database connection pooling</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">by Sarah Chen · 11 May 2026</div>
+    <div class="notif-body">@alex.johnson can you take a look at the pool size config? I think the defaults might be causing the timeouts we saw in staging.</div>
+  </div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-men">Mention</span>
+      <span class="notif-key">PROJ-441</span>
+      <span class="notif-summary">Upgrade deployment pipeline to use parallel stages</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">by Mark Rivera · 10 May 2026</div>
+    <div class="notif-body">@alex.johnson this is blocking the release, can you review my PR when you get a chance?</div>
+  </div>
+  <div class="notif-item">
+    <div class="notif-header">
+      <span class="badge badge-men">Mention</span>
+      <span class="notif-key">PROJ-455</span>
+      <span class="notif-summary">Investigate memory leak in the background job processor</span>
+      <button class="notif-dismiss">×</button>
+    </div>
+    <div class="notif-meta">by Lisa Park · 10 May 2026</div>
+    <div class="notif-body">@alex.johnson heap dumps attached — looks like it's related to the queue listener you added last sprint.</div>
+  </div>
+</div>
+</body>
+</html>
