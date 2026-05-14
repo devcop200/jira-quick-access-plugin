@@ -311,8 +311,20 @@ header {
 }
 
 /* ── Pin button ── */
-.pin-btn {
+.issue-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   flex-shrink: 0;
+}
+
+.issue-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pin-btn {
   background: #f4f5f7;
   border: 1px solid #dfe1e6;
   cursor: pointer;

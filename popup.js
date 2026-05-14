@@ -100,9 +100,13 @@ function renderCard(issue, showPin) {
           <span class="priority-dot ${priorityClass(prioName)}" title="${prioName}"></span>
         </div>
       </div>
-      ${showPin ? `<button class="pin-btn${isPinned ? ' pinned' : ''}" data-pin="${issue.key}" title="${isPinned ? 'Unpin' : 'Pin'}">📌</button>` : ''}
-      <button class="tt-clock-btn${hasActive ? ' active' : ''}" data-tt-clock="${issue.key}" data-summary="${escHtml(f.summary || '')}" title="Track time">⏱</button>
-      <button class="expand-btn" data-key="${issue.key}" title="Show details">›</button>
+      <div class="issue-actions">
+        <div class="issue-btn-group">
+          <button class="tt-clock-btn${hasActive ? ' active' : ''}" data-tt-clock="${issue.key}" data-summary="${escHtml(f.summary || '')}" title="Track time">⏱</button>
+          ${showPin ? `<button class="pin-btn${isPinned ? ' pinned' : ''}" data-pin="${issue.key}" title="${isPinned ? 'Unpin' : 'Pin'}">📌</button>` : ''}
+        </div>
+        <button class="expand-btn" data-key="${issue.key}" title="Show details">›</button>
+      </div>
     </div>
     <div class="issue-detail" data-detail-key="${issue.key}"></div>
   `;

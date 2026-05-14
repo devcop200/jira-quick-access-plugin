@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1] — 2026-05-14
+
+### Changed
+- Pin button now matches the timer button exactly in size and box style (`font-size: 16px`, `padding: 3px 7px`, same border/radius)
+- Timer and pin buttons are stacked vertically in a shared column group on each issue card
+- Expand (›) button remains on the far right but is now vertically centred on the imaginary midpoint between the timer and pin buttons
+
+---
+
 ## [1.3.0] — 2026-05-14
 
 ### Added
