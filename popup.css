@@ -37,18 +37,12 @@ header {
   letter-spacing: 0.2px;
 }
 
-.jira-dot {
+.header-icon {
   width: 22px;
   height: 22px;
-  background: #fff;
   border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #0052CC;
-  font-weight: 900;
-  font-size: 14px;
-  line-height: 1;
+  display: block;
+  flex-shrink: 0;
 }
 
 .user-label {
@@ -422,17 +416,22 @@ header {
   flex-shrink: 0;
 }
 
-.date-range-row input[type="date"] {
-  flex: 1;
+.date-sel-month,
+.date-sel-year {
   border: 1px solid #dfe1e6;
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 12px;
   color: #172b4d;
+  background: #fff;
   outline: none;
+  cursor: pointer;
   min-width: 0;
 }
-.date-range-row input[type="date"]:focus { border-color: #0052CC; }
+.date-sel-month { flex: 2; }
+.date-sel-year  { flex: 1; }
+.date-sel-month:focus,
+.date-sel-year:focus  { border-color: #0052CC; }
 
 .date-sep { color: #5e6c84; font-size: 13px; flex-shrink: 0; }
 
@@ -1399,3 +1398,560 @@ header {
 .ci-btn-primary:disabled { background: #97a0af; cursor: default; }
 
 .hidden { display: none !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   DARK MODE — appended block, no existing rules touched
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+
+  /* ── Base ── */
+  body {
+    background: #1a1f2e;
+    color: #e2e8f4;
+  }
+
+  /* ── Header (Jira blue bar) ── */
+  header {
+    background: #003d99;
+  }
+  .icon-btn:hover {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+  .tab {
+    color: #a3b2c4;
+    background: none;
+  }
+  .tab:hover { color: #e2e8f4; }
+  .tab.active { color: #4c9aff; border-bottom-color: #4c9aff; }
+
+  .tab-badge {
+    background: #DE350B;
+    color: #fff;
+  }
+
+  /* ── Panels ── */
+  .panel { background: #1a1f2e; }
+  #my-issues-panel { background: #1a1f2e; }
+  #issues-container { background: #1a1f2e; }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+  .filter-chip {
+    background: #242938;
+    border-color: #343d52;
+    color: #a3b2c4;
+  }
+  .filter-chip:hover {
+    background: #2d3347;
+    border-color: #4c5470;
+  }
+  .filter-chip.active {
+    background: #0052CC;
+    border-color: #0052CC;
+    color: #fff;
+  }
+  .filter-chip[data-status="Blocked"] {
+    background: #2d1a1a;
+    border-color: #6b2a2a;
+    color: #ff6b6b;
+  }
+  .filter-chip[data-status="Blocked"]:hover {
+    background: #3d2020;
+    border-color: #8b3a3a;
+  }
+  .filter-chip[data-status="Blocked"].active {
+    background: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+  }
+
+  /* ── My Issues search ── */
+  #my-issues-search-box {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+  #my-issues-search {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+  }
+  #my-issues-search:focus {
+    border-color: #4c9aff;
+    box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
+  }
+  #my-issues-search::placeholder { color: #6b7a8d; }
+
+  /* ── Issue list ── */
+  .issue-item {
+    border-bottom-color: #2a3347;
+    color: #e2e8f4;
+  }
+  .issue-item:hover { background: #2d3347; }
+  .issue-item:last-child { border-bottom: none; }
+
+  .issue-key { color: #4c9aff; }
+  .issue-summary { color: #e2e8f4; }
+  .issue-meta { color: #a3b2c4; }
+
+  /* ── Status badges — keep colored but darken bg ── */
+  .status-todo   { background: #2a2d35; color: #a3b2c4; }
+  .status-inprog { background: #0f2040; color: #4c9aff; }
+  .status-review { background: #1e1840; color: #9b8ff7; }
+  .status-done   { background: #0a2518; color: #36b37e; }
+
+  /* ── Priority dots — keep as-is ── */
+  .pri-highest, .pri-high { background: #ff5630; }
+  .pri-medium             { background: #ff8b00; }
+  .pri-low, .pri-lowest   { background: #2684ff; }
+
+  /* ── Pinned label ── */
+  .pinned-label {
+    background: #2a1818;
+    border-bottom-color: #343d52;
+    color: #ff6b6b;
+  }
+
+  /* ── Pin / clock / expand buttons ── */
+  .pin-btn {
+    background: #242938;
+    border-color: #343d52;
+    color: #6b7a8d;
+  }
+  .pin-btn:hover {
+    background: #2d3347;
+    border-color: #4c5470;
+  }
+  .pin-btn.pinned {
+    background: #2d1818;
+    border-color: #6b2a2a;
+  }
+
+  .tt-clock-btn {
+    background: #242938;
+    border-color: #343d52;
+    color: #6b7a8d;
+  }
+  .tt-clock-btn:hover {
+    background: #2d3347;
+    border-color: #4c5470;
+    color: #a3b2c4;
+  }
+  .tt-clock-btn.active {
+    background: #0f2040;
+    border-color: #4c9aff;
+    color: #4c9aff;
+  }
+
+  .expand-btn {
+    color: #6b7a8d;
+  }
+  .expand-btn:hover {
+    background: #2d3347;
+    color: #a3b2c4;
+  }
+  .expand-btn.active {
+    background: #0f2040;
+    color: #4c9aff;
+  }
+
+  /* ── Search panel ── */
+  .search-box {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+  #search-input {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+  }
+  #search-input:focus {
+    border-color: #4c9aff;
+    box-shadow: 0 0 0 2px rgba(76,154,255,0.2);
+  }
+  #search-input::placeholder { color: #6b7a8d; }
+  #search-results { background: #1a1f2e; }
+
+  /* ── States ── */
+  .state-msg { color: #6b7a8d; }
+  .error-msg  { color: #ff6b6b; }
+
+  .loading-spinner {
+    border-color: #343d52;
+    border-top-color: #4c9aff;
+  }
+
+  /* ── Not configured ── */
+  #not-configured { color: #6b7a8d; }
+  .not-configured { color: #6b7a8d; }
+
+  /* ── Period selector (Logged Work) ── */
+  .period-selector {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+  .period-btn { color: #a3b2c4; }
+  .period-btn:hover { color: #e2e8f4; }
+  .period-btn.active { color: #4c9aff; border-bottom-color: #4c9aff; }
+
+  /* ── Date range row ── */
+  .date-range-row {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+  .date-sel-year,
+  .date-sel-month {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+  }
+  .date-sel-year:focus,
+  .date-sel-month:focus { border-color: #4c9aff; }
+  .date-sep { color: #6b7a8d; }
+
+  .btn-go {
+    background: #0052CC;
+    color: #fff;
+  }
+  .btn-go:hover { background: #0065FF; }
+
+  /* ── Work chart & legend ── */
+  #work-chart { background: #1a1f2e; }
+  #work-legend { background: #1a1f2e; }
+
+  .legend-item {
+    border-bottom-color: #2a3347;
+  }
+  .legend-item:hover { background: #2d3347; }
+  .legend-key { color: #4c9aff; }
+  .legend-summary { color: #e2e8f4; }
+  .legend-time { color: #a3b2c4; }
+
+  /* ── Issue detail panel ── */
+  .issue-detail {
+    background: #1e2436;
+    border-left-color: #4c9aff;
+    border-bottom-color: #343d52;
+  }
+
+  .dp-section { border-bottom-color: #343d52; }
+  .dp-label   { color: #6b7a8d; }
+  .dp-value   { color: #e2e8f4; }
+
+  .dp-description { color: #e2e8f4; }
+  .dp-description a    { color: #4c9aff; }
+  .dp-description code { background: #2d3347; color: #e2e8f4; }
+  .dp-description pre  { background: #2d3347; color: #e2e8f4; }
+
+  .dp-meta-grid {}
+  .dp-time-row       { color: #e2e8f4; }
+  .dp-time-row span  { color: #a3b2c4; }
+  .dp-time-row strong{ color: #e2e8f4; }
+
+  .dp-bar-wrap { background: #343d52; }
+  .dp-bar      { background: #4c9aff; }
+  .dp-bar-over { background: #ff5630; }
+  .dp-bar-tip  { color: #e2e8f4; }
+  .dp-bar-label { color: #a3b2c4; }
+  .dp-bar-est  { color: #e2e8f4; }
+
+  .dp-link { border-bottom-color: #2a3347; }
+  .dp-link-rel     { color: #6b7a8d; }
+  .dp-link-key     { color: #4c9aff; }
+  .dp-link-summary { color: #e2e8f4; }
+
+  .dp-chip {
+    background: #2d3347;
+    color: #a3b2c4;
+  }
+
+  /* ── Notifications ── */
+  .notif-section-header {
+    background: #242938;
+    border-bottom-color: #343d52;
+    color: #6b7a8d;
+  }
+
+  .notif-item { border-bottom-color: #2a3347; }
+  .notif-item:hover { background: #242938; }
+
+  .notif-item-key     { color: #4c9aff; }
+  .notif-item-summary { color: #e2e8f4; }
+  .notif-item-meta    { color: #6b7a8d; }
+  .notif-item-body    { color: #a3b2c4; }
+
+  /* Keep notif type badges colored */
+  .notif-type-mention  { background: #0f2040; color: #4c9aff; }
+  .notif-type-assigned { background: #0a2518; color: #36b37e; }
+  .notif-type-returned { background: #2d1010; color: #ff6b6b; }
+
+  .notif-dismiss:hover { background: #2d3347; color: #ff6b6b; }
+
+  /* ── TT chips in header ── */
+  .tt-chip {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.22);
+    color: #fff;
+  }
+  .tt-chip.running {
+    background: #de350b;
+    border-color: #de350b;
+  }
+  .tt-chip-btn { color: rgba(255,255,255,0.85); }
+  .tt-chip-btn:hover { color: #fff; }
+
+  .tt-overflow-btn {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.22);
+    color: #fff;
+  }
+  .tt-overflow-btn:hover { background: rgba(255,255,255,0.22); }
+
+  /* TT overflow dropdown */
+  #tt-overflow-panel {
+    background: #242938;
+    border-color: #343d52;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+  }
+  .tt-overflow-item {
+    border-bottom-color: #2a3347;
+  }
+  .tt-overflow-item.running { background: #2d1a12; }
+  .tt-overflow-key    { color: #4c9aff; }
+  .tt-overflow-counter{ color: #e2e8f4; }
+
+  /* ── TT section label & my-tasks label ── */
+  .tt-section-label,
+  .tt-my-tasks-label {
+    background: #242938;
+    border-bottom-color: #343d52;
+    color: #6b7a8d;
+  }
+
+  /* ── TT issue row ── */
+  .tt-issue-row {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+
+  .tt-section-counter        { color: #4c9aff; }
+  .tt-section-counter.paused { color: #6b7a8d; }
+
+  .tt-issue-key      { color: #4c9aff; }
+  .tt-issue-summary  { color: #e2e8f4; }
+
+  .tt-btn { color: #a3b2c4; }
+  .tt-btn:hover { background: #2d3347; }
+  .tt-btn.stop:hover { color: #ff5630; }
+
+  /* TT stop confirm */
+  .tt-stop-confirm {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .tt-stop-no {
+    background: #2d3347;
+    color: #a3b2c4;
+  }
+  .tt-stop-no:hover { background: #343d52; }
+
+  /* ── Notes panel ── */
+  .tt-notes-panel {
+    background: #1e2436;
+    border-bottom-color: #343d52;
+  }
+  .tt-notes-textarea {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+  }
+  .tt-notes-textarea:focus { border-color: #4c9aff; }
+  .tt-notes-textarea::placeholder { color: #6b7a8d; }
+
+  .tt-notes-save { background: #0052CC; color: #fff; }
+  .tt-notes-save:hover { background: #0065FF; }
+
+  /* ── Session history ── */
+  .tt-session-history {}
+  .tt-session-label { color: #6b7a8d; }
+  .tt-session-entry-wrap { border-bottom-color: #2a3347; }
+  .tt-session-entry  { color: #a3b2c4; }
+  .tt-session-duration { color: #e2e8f4; }
+  .tt-session-date   { color: #6b7a8d; }
+  .tt-session-delete { color: #4c5470; }
+  .tt-session-delete:hover { color: #ff5630; }
+
+  .tt-notes-toggle {
+    background: transparent;
+    border-color: #343d52;
+    color: #a3b2c4;
+  }
+  .tt-notes-toggle:hover { background: #2d3347; }
+  .tt-notes-pre { color: #a3b2c4; }
+
+  /* ── TT time chip ── */
+  .tt-time-chip {
+    background: #0f2040;
+    color: #4c9aff;
+  }
+
+  /* ── Section labels (generic) ── */
+  .section-label {
+    background: #242938;
+    border-bottom-color: #343d52;
+    color: #6b7a8d;
+  }
+
+  /* ── Create Issue panel ── */
+  #create-issue-panel { background: #1a1f2e; }
+
+  .ci-form-header {
+    background: #1a1f2e;
+    border-bottom-color: #343d52;
+  }
+  .ci-form-title { color: #e2e8f4; }
+
+  .ci-form-body { background: #1a1f2e; }
+
+  .ci-label { color: #6b7a8d; }
+
+  .ci-select,
+  .ci-input,
+  .ci-textarea {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+  }
+  .ci-select:focus,
+  .ci-input:focus,
+  .ci-textarea:focus {
+    border-color: #4c9aff;
+    box-shadow: 0 0 0 2px rgba(76,154,255,0.18);
+  }
+  .ci-select option { background: #242938; color: #e2e8f4; }
+  .ci-input::placeholder,
+  .ci-textarea::placeholder { color: #6b7a8d; }
+
+  .ci-tags-wrap {
+    background: #242938;
+    border-color: #343d52;
+  }
+  .ci-tags-wrap:focus-within {
+    border-color: #4c9aff;
+    box-shadow: 0 0 0 2px rgba(76,154,255,0.18);
+  }
+  .ci-tag-chip {
+    background: #2d3347;
+    color: #a3b2c4;
+  }
+  .ci-tag-remove { color: #6b7a8d; }
+  .ci-tag-remove:hover { color: #ff5630; }
+  .ci-tags-text {
+    color: #e2e8f4;
+    background: transparent;
+  }
+  .ci-tags-text::placeholder { color: #6b7a8d; }
+
+  /* Autocomplete dropdown */
+  .ci-dropdown {
+    background: #242938;
+    border-color: #343d52;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .ci-dd-item {
+    color: #e2e8f4;
+    border-bottom-color: #2a3347;
+  }
+  .ci-dd-item:hover,
+  .ci-dd-item.ci-dd-active { background: #2d3347; }
+  .ci-dd-item-key { color: #4c9aff; }
+
+  /* Advanced section */
+  .ci-advanced-btn { color: #4c9aff; }
+
+  /* Link rows */
+  .ci-link-type-sel {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+  }
+  .ci-link-type-sel:focus { border-color: #4c9aff; }
+  .ci-link-issue-input {
+    background: #242938;
+    border-color: #343d52;
+    color: #e2e8f4;
+  }
+  .ci-link-issue-input:focus { border-color: #4c9aff; }
+  .ci-link-issue-input::placeholder { color: #6b7a8d; }
+  .ci-link-remove { color: #6b7a8d; }
+  .ci-link-remove:hover { color: #ff5630; }
+
+  .ci-add-link-btn {
+    border-color: #343d52;
+    color: #a3b2c4;
+  }
+  .ci-add-link-btn:hover { border-color: #4c9aff; color: #4c9aff; }
+
+  /* Error */
+  .ci-error {
+    background: #2d1010;
+    border-color: #6b2a2a;
+    color: #ff6b6b;
+  }
+
+  /* Footer */
+  .ci-footer { border-top-color: #343d52; }
+  .ci-btn-secondary {
+    background: #242938;
+    border-color: #343d52;
+    color: #a3b2c4;
+  }
+  .ci-btn-secondary:hover { background: #2d3347; }
+  .ci-btn-primary { background: #0052CC; color: #fff; }
+  .ci-btn-primary:hover:not(:disabled) { background: #0065FF; }
+  .ci-btn-primary:disabled { background: #2a3347; color: #6b7a8d; cursor: default; }
+
+  /* ci-icon-btn-dark overrides in dark mode — restore standard dark look */
+  .ci-icon-btn-dark {
+    color: #a3b2c4 !important;
+  }
+  .ci-icon-btn-dark:hover {
+    background: #2d3347 !important;
+    color: #e2e8f4 !important;
+  }
+
+  /* ── btn-primary (not-configured screen) ── */
+  .btn-primary {
+    background: #0052CC;
+    color: #fff;
+  }
+  .btn-primary:hover { background: #0065FF; }
+
+  /* ── Scrollbars ── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1a1f2e;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #343d52;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4c5470;
+  }
+
+}

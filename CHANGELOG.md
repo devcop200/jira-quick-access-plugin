@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0] — 2026-05-14
+
+### Added
+- **Dark mode** — full `@media (prefers-color-scheme: dark)` support across popup and settings; every component (filter bar, cards, badges, TT section, create-issue form, notifications, chart) adapts to the system colour scheme automatically
+- **Extension icon in navbar** — the blue "J" placeholder is replaced with the actual extension icon (`icon48.png` scaled to 22×22 px)
+- **Pie chart hover tooltips** — hovering a donut segment now shows a native SVG tooltip with the issue key and logged time (e.g. `PROJ-42 — 2h 30m`)
+- **Month/year date picker** — the Custom range in Logged Work now uses friendly month + year `<select>` dropdowns (e.g. Apr 2026 – May 2026) instead of native date inputs; the range covers the full selected months
+
+### Changed
+- Settings → Returned Tickets — added an example JQL hint: `status changed to "In Progress" FROM "Code Review" AND assignee = currentUser()`
+
+---
+
 ## [1.3.1] — 2026-05-14
 
 ### Changed

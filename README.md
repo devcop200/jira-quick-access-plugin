@@ -40,6 +40,10 @@ Track time spent on any ticket directly from the popup — no Jira access requir
 - Minimum session duration of **1 minute** (stopping at 45 s records 1 m)
 - All data is stored locally in `chrome.storage.local` — nothing is sent to Jira
 
+### Dark mode
+
+Full `@media (prefers-color-scheme: dark)` support — the popup and settings page automatically follow the system colour scheme. All components adapt: filter bar, issue cards, status badges, time-tracking section, create-issue form, notifications, and the logged-work chart.
+
 ### Background polling (every 1 min)
 - Checks your **Returned Tickets** JQL filter and notifies when the count rises
 - Detects new **Assignments** and fires a desktop notification

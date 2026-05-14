@@ -54,6 +54,10 @@
           <textarea id="watch-jql" rows="3"
             placeholder="labels = my_watch_label AND assignee = currentUser() AND status != Done"></textarea>
           <p class="field-hint">Leave empty to disable background monitoring.</p>
+          <p class="field-hint">
+            Example — tickets returned from code review:<br/>
+            <code>status changed to "In Progress" FROM "Code Review" AND assignee = currentUser()</code>
+          </p>
         </div>
 
         <div class="actions">

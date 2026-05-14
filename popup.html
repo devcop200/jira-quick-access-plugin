@@ -7,7 +7,7 @@
 <body>
   <header>
     <div class="header-left">
-      <div class="jira-dot">J</div>
+      <img src="icons/icon48.png" class="header-icon" alt="J" />
       <span>Jira</span>
       <span class="user-label" id="user-label"></span>
     </div>
@@ -119,9 +119,11 @@
       </div>
       <div id="custom-dates" class="hidden">
         <div class="date-range-row">
-          <input type="date" id="date-from" />
+          <select class="date-sel-month" id="date-from-month"></select>
+          <select class="date-sel-year" id="date-from-year"></select>
           <span class="date-sep">–</span>
-          <input type="date" id="date-to" />
+          <select class="date-sel-month" id="date-to-month"></select>
+          <select class="date-sel-year" id="date-to-year"></select>
           <button class="btn-go" id="apply-custom-dates">Go</button>
         </div>
       </div>
