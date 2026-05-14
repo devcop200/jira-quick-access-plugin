@@ -3,8 +3,7 @@
 ## [1.4.0] — 2026-05-14
 
 ### Added
-- **Dark mode** — full dark theme across popup and settings; every component adapts automatically; controlled by the new **Appearance → Theme** setting
-- **Appearance setting** — Settings page now has a Theme selector: *System Default* (follows OS), *Always Light*, *Always Dark*; preference persists and applies instantly without a flash
+- **Dark mode** — full dark theme across popup and settings; every component adapts; toggle with the 🌙 / ☀️ button in the popup navbar; preference persists across sessions
 - **Extension icon in navbar** — the blue "J" placeholder is replaced with the actual extension icon (`icon48.png` scaled to 22×22 px)
 - **Pie chart hover tooltips** — hovering a donut segment shows a native SVG tooltip with the issue key and logged time (e.g. `PROJ-42 — 2h 30m`)
 

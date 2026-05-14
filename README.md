@@ -42,7 +42,7 @@ Track time spent on any ticket directly from the popup — no Jira access requir
 
 ### Dark mode
 
-The popup and settings page support a full dark theme. Choose between **System Default**, **Always Light**, or **Always Dark** in **Settings → Appearance**. The preference is applied instantly and persists across sessions.
+The popup and settings page support a full dark theme. Click the **🌙 / ☀️** button in the popup navbar to toggle; the preference persists across sessions.
 
 ### Background polling (every 1 min)
 - Checks your **Returned Tickets** JQL filter and notifies when the count rises

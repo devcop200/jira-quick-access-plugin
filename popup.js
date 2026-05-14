@@ -573,6 +573,25 @@ document.getElementById('settings-btn').addEventListener('click', () => {
   chrome.runtime.openOptionsPage();
 });
 
+// ── Theme toggle ───────────────────────────────────────────────────────────────
+
+const themeBtn = document.getElementById('theme-btn');
+
+function updateThemeBtn() {
+  themeBtn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+}
+
+themeBtn.addEventListener('click', () => {
+  const goingDark = !document.documentElement.classList.contains('dark');
+  document.documentElement.classList.toggle('dark', goingDark);
+  const theme = goingDark ? 'dark' : 'light';
+  localStorage.setItem('jqa-theme', theme);
+  chrome.storage.local.set({ theme });
+  updateThemeBtn();
+});
+
+updateThemeBtn();
+
 document.getElementById('refresh-btn').addEventListener('click', () => {
   const activeTab = document.querySelector('.tab.active').dataset.tab;
   if (activeTab === 'my-issues')     loadMyIssues();
