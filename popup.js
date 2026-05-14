@@ -578,7 +578,7 @@ document.getElementById('settings-btn').addEventListener('click', () => {
 const themeBtn = document.getElementById('theme-btn');
 
 function updateThemeBtn() {
-  themeBtn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  themeBtn.textContent = document.documentElement.classList.contains('dark') ? '☀' : '☾';
 }
 
 themeBtn.addEventListener('click', () => {

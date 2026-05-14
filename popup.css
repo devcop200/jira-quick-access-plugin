@@ -145,6 +145,10 @@ header {
   overflow-y: auto;
   min-height: 0;
 }
+#issues-container::-webkit-scrollbar { width: 6px; }
+#issues-container::-webkit-scrollbar-track { background: transparent; }
+#issues-container::-webkit-scrollbar-thumb { background: #c1c7d0; border-radius: 3px; }
+#issues-container::-webkit-scrollbar-thumb:hover { background: #97a0af; }
 
 /* ── Issue list ── */
 .issue-item {
@@ -1933,18 +1937,13 @@ html.dark .btn-primary {
 html.dark .btn-primary:hover { background: #0065FF; }
 
 /* ── Scrollbars ── */
-html.dark ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-html.dark ::-webkit-scrollbar-track {
+html.dark #issues-container::-webkit-scrollbar-track {
   background: #1a1f2e;
 }
-html.dark ::-webkit-scrollbar-thumb {
+html.dark #issues-container::-webkit-scrollbar-thumb {
   background: #343d52;
-  border-radius: 3px;
 }
-html.dark ::-webkit-scrollbar-thumb:hover {
+html.dark #issues-container::-webkit-scrollbar-thumb:hover {
   background: #4c5470;
 }
 
