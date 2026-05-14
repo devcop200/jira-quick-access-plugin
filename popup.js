@@ -23,9 +23,9 @@ function issueTypeColor(name) {
   const n = (name || '').toLowerCase();
   if (n === 'bug') return '#e53935';
   if (n.includes('epic')) return '#8750c8';
+  if (n.includes('sub-task') || n.includes('subtask')) return '#66b2ff';
   if (n.includes('story')) return '#4caf50';
   if (n.includes('task')) return '#0052cc';
-  if (n.includes('sub-task')) return '#66b2ff';
   return '#42526e';
 }
 
@@ -34,7 +34,9 @@ function issueTypeInitial(name) {
   const n = name.toLowerCase();
   if (n === 'bug') return 'B';
   if (n.includes('epic')) return 'E';
+  if (n.includes('sub-task') || n.includes('subtask')) return 'Sb';
   if (n.includes('story')) return 'S';
+  if (n.includes('task')) return 'T';
   return name[0].toUpperCase();
 }
 
@@ -74,44 +76,66 @@ async function openIssue(key) {
   chrome.tabs.create({ url });
 }
 
+function renderCard(issue, showPin) {
+  const f = issue.fields;
+  const statusCat  = f.status?.statusCategory?.key || 'new';
+  const prioName   = f.priority?.name || 'Medium';
+  const typeName   = f.issuetype?.name || '';
+  const statusName = f.status?.name || '';
+  const ttEntry    = ttTracker[issue.key];
+  const hasActive  = ttEntry && (ttEntry.state === 'running' || ttEntry.state === 'paused');
+  const totalMs    = ttGetTotalMs(issue.key);
+  const isPinned   = pinnedTaskIds.has(issue.key);
+
+  return `
+    <div class="issue-item" data-key="${issue.key}">
+      <div class="issue-type-icon" style="background:${issueTypeColor(typeName)}" title="${typeName}">
+        ${issueTypeInitial(typeName)}
+      </div>
+      <div class="issue-body">
+        <div class="issue-key">${issue.key}${totalMs > 0 ? `<span class="tt-time-chip" title="Time tracked with the plugin">${ttFormatMsCompact(totalMs)}</span>` : ''}</div>
+        <div class="issue-summary" title="${escHtml(f.summary || '')}">${escHtml(f.summary || '(no summary)')}</div>
+        <div class="issue-meta">
+          <span class="status-badge ${statusClass(statusCat)}">${statusLabel(statusName)}</span>
+          <span class="priority-dot ${priorityClass(prioName)}" title="${prioName}"></span>
+        </div>
+      </div>
+      ${showPin ? `<button class="pin-btn${isPinned ? ' pinned' : ''}" data-pin="${issue.key}" title="${isPinned ? 'Unpin' : 'Pin'}">📌</button>` : ''}
+      <button class="tt-clock-btn${hasActive ? ' active' : ''}" data-tt-clock="${issue.key}" data-summary="${escHtml(f.summary || '')}" title="Track time">⏱</button>
+      <button class="expand-btn" data-key="${issue.key}" title="Show details">›</button>
+    </div>
+    <div class="issue-detail" data-detail-key="${issue.key}"></div>
+  `;
+}
+
 function renderIssues(issues) {
   if (!issues.length) return '<div class="state-msg">No issues found.</div>';
+  return issues.map(i => renderCard(i, false)).join('');
+}
 
-  return issues.map(issue => {
-    const f = issue.fields;
-    const statusCat  = f.status?.statusCategory?.key || 'new';
-    const prioName   = f.priority?.name || 'Medium';
-    const typeName   = f.issuetype?.name || '';
-    const statusName = f.status?.name || '';
-    const ttEntry    = ttTracker[issue.key];
-    const hasActive  = ttEntry && (ttEntry.state === 'running' || ttEntry.state === 'paused');
-    const totalMs    = ttGetTotalMs(issue.key);
+function bindPinButtons(container) {
+  container.querySelectorAll('[data-pin]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      togglePin(btn.dataset.pin);
+    });
+  });
+}
 
-    return `
-      <div class="issue-item" data-key="${issue.key}">
-        <div class="issue-type-icon" style="background:${issueTypeColor(typeName)}" title="${typeName}">
-          ${issueTypeInitial(typeName)}
-        </div>
-        <div class="issue-body">
-          <div class="issue-key">${issue.key}${totalMs > 0 ? `<span class="tt-time-chip" title="Time tracked with the plugin">${ttFormatMsCompact(totalMs)}</span>` : ''}</div>
-          <div class="issue-summary" title="${escHtml(f.summary || '')}">${escHtml(f.summary || '(no summary)')}</div>
-          <div class="issue-meta">
-            <span class="status-badge ${statusClass(statusCat)}">${statusLabel(statusName)}</span>
-            <span class="priority-dot ${priorityClass(prioName)}" title="${prioName}"></span>
-          </div>
-        </div>
-        <button class="tt-clock-btn${hasActive ? ' active' : ''}" data-tt-clock="${issue.key}" data-summary="${escHtml(f.summary || '')}" title="Track time">⏱</button>
-        <button class="expand-btn" data-key="${issue.key}" title="Show details">›</button>
-      </div>
-      <div class="issue-detail" data-detail-key="${issue.key}"></div>
-    `;
-  }).join('');
+function togglePin(key) {
+  if (pinnedTaskIds.has(key)) {
+    pinnedTaskIds.delete(key);
+  } else {
+    pinnedTaskIds.add(key);
+  }
+  chrome.storage.local.set({ pinnedTaskIds: [...pinnedTaskIds] });
+  applyFilter();
 }
 
 function bindIssueClicks(container) {
   container.querySelectorAll('.issue-item').forEach(el => {
     el.addEventListener('click', e => {
-      if (e.target.closest('.expand-btn') || e.target.closest('.tt-clock-btn')) return;
+      if (e.target.closest('.expand-btn') || e.target.closest('.tt-clock-btn') || e.target.closest('.pin-btn')) return;
       openIssue(el.dataset.key);
     });
   });
@@ -407,8 +431,17 @@ const WORKFLOW_ORDER = [
 const issuesContainer = document.getElementById('issues-container');
 const filterBar = document.getElementById('filter-bar');
 
-let allIssues = [];
+let allIssues    = [];
 let activeFilter = 'All';
+
+let pinnedTaskIds          = new Set();
+let wasPinnedBeforeTracking = new Set();
+let myIssuesSearchQuery    = '';
+
+document.getElementById('my-issues-search').addEventListener('input', function () {
+  myIssuesSearchQuery = this.value;
+  applyFilter();
+});
 
 function renderFilterBar() {
   const presentStatuses = [...new Set(allIssues.map(i => i.fields.status?.name).filter(Boolean))];
@@ -454,18 +487,44 @@ function renderFilterBar() {
 }
 
 function applyFilter() {
-  const filtered = activeFilter === 'All'
+  const statusFiltered = activeFilter === 'All'
     ? allIssues
     : allIssues.filter(i => i.fields.status?.name === activeFilter);
 
-  // TT section: all active timers regardless of status filter
+  const q = myIssuesSearchQuery.trim().toLowerCase();
+  const filtered = q
+    ? statusFiltered.filter(i =>
+        i.key.toLowerCase().includes(q) ||
+        (i.fields.summary || '').toLowerCase().includes(q)
+      )
+    : statusFiltered;
+
   const activeKeys = new Set(ttGetActive().map(([k]) => k));
   ttRenderSection();
 
-  // Regular list: filtered issues excluding actively-tracked ones
-  const regular = filtered.filter(i => !activeKeys.has(i.key));
-  issuesContainer.innerHTML = renderIssues(regular);
+  const pinned  = filtered.filter(i => pinnedTaskIds.has(i.key) && !activeKeys.has(i.key));
+  const regular = filtered.filter(i => !pinnedTaskIds.has(i.key) && !activeKeys.has(i.key));
+
+  // Show "My Tasks" header whenever a section sits above the regular list
+  const myTasksHdr = document.getElementById('tt-my-tasks-header');
+  if (myTasksHdr && !activeKeys.size) {
+    myTasksHdr.classList.toggle('hidden', !(pinned.length > 0 && regular.length > 0));
+  }
+
+  let html = '';
+  if (pinned.length) {
+    html += '<div class="pinned-label">Pinned</div>';
+    html += pinned.map(i => renderCard(i, true)).join('');
+  }
+  if (regular.length) {
+    html += regular.map(i => renderCard(i, true)).join('');
+  } else if (!pinned.length) {
+    html += '<div class="state-msg">No issues found.</div>';
+  }
+
+  issuesContainer.innerHTML = html;
   bindIssueClicks(issuesContainer);
+  bindPinButtons(issuesContainer);
 }
 
 async function loadMyIssues() {
@@ -983,6 +1042,11 @@ function ttStart(key, summary) {
     }
   }
 
+  // Remember if this task was pinned so we can restore after stop
+  if (pinnedTaskIds.has(key)) {
+    wasPinnedBeforeTracking.add(key);
+  }
+
   const now = Date.now();
   const ex  = ttTracker[key];
 
@@ -1037,6 +1101,13 @@ function ttStop(key) {
   e.lastResumeTs = null;
   e.currentNotes = '';
   e.currentSessionStart = 0;
+
+  // Restore pin if task was pinned before tracking started
+  if (wasPinnedBeforeTracking.has(key)) {
+    pinnedTaskIds.add(key);
+    wasPinnedBeforeTracking.delete(key);
+    chrome.storage.local.set({ pinnedTaskIds: [...pinnedTaskIds] });
+  }
 
   ttSave();
   ttRenderNavChips();
@@ -1477,9 +1548,10 @@ async function init() {
     }
   );
 
-  // Load persisted time tracking state before rendering issues
-  chrome.storage.local.get('timeTracking', d => {
-    ttTracker = d.timeTracking || {};
+  // Load persisted state before rendering issues
+  chrome.storage.local.get(['timeTracking', 'pinnedTaskIds'], d => {
+    ttTracker    = d.timeTracking || {};
+    pinnedTaskIds = new Set(d.pinnedTaskIds || []);
     ttRenderNavChips();
     if (ttGetActive().length) ttEnsureTick();
     loadMyIssues();
@@ -1487,3 +1559,408 @@ async function init() {
 }
 
 init();
+
+// ── Create Issue ──────────────────────────────────────────────────────────────
+
+const ciPanel = document.getElementById('create-issue-panel');
+
+let ciSelectedLabels = [];
+let ciAssignee       = null;  // { name, displayName }
+let ciLinkTypes      = [];
+
+// ── open / close ──
+
+function ciOpen() {
+  document.getElementById('main-content').classList.add('hidden');
+  ciPanel.classList.remove('hidden');
+  ciResetForm();
+  ciLoadInitialData();
+}
+
+function ciClose() {
+  ciPanel.classList.add('hidden');
+  document.getElementById('main-content').classList.remove('hidden');
+}
+
+// ── form reset ──
+
+function ciResetForm() {
+  document.getElementById('ci-project').innerHTML    = '<option value="">Loading…</option>';
+  document.getElementById('ci-issuetype').innerHTML  = '<option value="">—</option>';
+  document.getElementById('ci-summary').value        = '';
+  document.getElementById('ci-description').value    = '';
+  document.getElementById('ci-labels-chips').innerHTML = '';
+  document.getElementById('ci-labels-input').value   = '';
+  document.getElementById('ci-assignee-input').value = '';
+  document.getElementById('ci-assignee-name').value  = '';
+  document.getElementById('ci-estimate').value       = '';
+  document.getElementById('ci-remaining').value      = '';
+  document.getElementById('ci-links-list').innerHTML = '';
+  document.getElementById('ci-error').classList.add('hidden');
+  document.getElementById('ci-advanced-body').classList.remove('ci-adv-open');
+  document.getElementById('ci-advanced-btn').textContent = 'Advanced ▾';
+  const sub = document.getElementById('ci-submit-btn');
+  sub.disabled = false;
+  sub.textContent = 'Create';
+  sub.style.background = '';
+  ciSelectedLabels = [];
+  ciAssignee = null;
+}
+
+// ── load data on open ──
+
+async function ciLoadInitialData() {
+  try {
+    const [projects, me, linkData, stored] = await Promise.all([
+      JiraAPI.getProjects(),
+      JiraAPI.getCurrentUser(),
+      JiraAPI.getLinkTypes(),
+      new Promise(r => chrome.storage.local.get('defaultProject', r)),
+    ]);
+
+    ciLinkTypes = linkData.issueLinkTypes || [];
+
+    const projectSel   = document.getElementById('ci-project');
+    const sorted       = (projects || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+    const defaultKey   = stored.defaultProject || '';
+    projectSel.innerHTML = sorted
+      .map(p => `<option value="${escHtml(p.key)}">${escHtml(p.name)} (${escHtml(p.key)})</option>`)
+      .join('');
+
+    if (defaultKey && sorted.find(p => p.key === defaultKey)) {
+      projectSel.value = defaultKey;
+    }
+    if (projectSel.value) ciLoadIssueTypes(projectSel.value);
+
+    ciAssignee = {
+      name: me.name || me.accountId || '',
+      displayName: me.displayName || me.name || '',
+    };
+    document.getElementById('ci-assignee-input').value = ciAssignee.displayName;
+    document.getElementById('ci-assignee-name').value  = ciAssignee.name;
+  } catch (err) {
+    document.getElementById('ci-project').innerHTML = '<option value="">Failed to load</option>';
+    console.error('ciLoadInitialData', err);
+  }
+}
+
+async function ciLoadIssueTypes(projectKey) {
+  const sel = document.getElementById('ci-issuetype');
+  sel.innerHTML = '<option value="">Loading…</option>';
+  try {
+    const meta  = await JiraAPI.getCreateMeta(projectKey);
+    const types = (meta.issuetypes || []).filter(t => !t.subtask);
+    if (!types.length) { sel.innerHTML = '<option value="">None available</option>'; return; }
+    sel.innerHTML = types.map(t =>
+      `<option value="${escHtml(t.id)}" data-name="${escHtml(t.name)}">${escHtml(t.name)}</option>`
+    ).join('');
+    const taskOpt = [...sel.options].find(o => o.dataset.name?.toLowerCase() === 'task');
+    if (taskOpt) sel.value = taskOpt.value;
+  } catch (err) {
+    console.error('ciLoadIssueTypes', err);
+    sel.innerHTML = '<option value="">Failed to load</option>';
+  }
+}
+
+// ── label chips ──
+
+function ciRenderLabels() {
+  const container = document.getElementById('ci-labels-chips');
+  container.innerHTML = ciSelectedLabels.map((l, i) =>
+    `<span class="ci-tag-chip">${escHtml(l)}<button class="ci-tag-remove" data-idx="${i}" tabindex="-1">×</button></span>`
+  ).join('');
+  container.querySelectorAll('.ci-tag-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      ciSelectedLabels.splice(Number(btn.dataset.idx), 1);
+      ciRenderLabels();
+    });
+  });
+}
+
+function ciAddLabel(val) {
+  const v = val.trim();
+  if (v && !ciSelectedLabels.includes(v)) {
+    ciSelectedLabels.push(v);
+    ciRenderLabels();
+  }
+  document.getElementById('ci-labels-input').value = '';
+  ciCloseDD('ci-labels-dropdown');
+}
+
+// ── dropdown helpers ──
+// Dropdowns use position:fixed to escape overflow clipping inside scrollable containers.
+
+function ciPositionDD(ddEl, anchorEl) {
+  const rect   = anchorEl.getBoundingClientRect();
+  ddEl.style.top   = `${rect.bottom + 2}px`;
+  ddEl.style.left  = `${rect.left}px`;
+  ddEl.style.width = `${rect.width}px`;
+}
+
+function ciOpenDD(ddId, anchorEl, items, onSelect) {
+  const dd = document.getElementById(ddId);
+  if (!items.length) { ciCloseDD(ddId); return; }
+  ciPositionDD(dd, anchorEl);
+  dd.innerHTML = items.map((item, i) => {
+    const label = typeof item === 'string' ? item : item.label;
+    const key   = item.key ? `<span class="ci-dd-item-key">${escHtml(item.key)}</span>` : '';
+    return `<div class="ci-dd-item" data-idx="${i}">${key}${escHtml(label)}</div>`;
+  }).join('');
+  dd.classList.add('ci-dd-open');
+  dd.querySelectorAll('.ci-dd-item').forEach((el, i) => {
+    el.addEventListener('mousedown', e => { e.preventDefault(); onSelect(items[i]); });
+  });
+}
+
+function ciCloseDD(ddId) {
+  const dd = document.getElementById(ddId);
+  if (dd) { dd.classList.remove('ci-dd-open'); dd.innerHTML = ''; }
+}
+
+function ciOpenDDEl(ddEl, anchorEl, items, onSelect) {
+  if (!items.length) { ddEl.classList.remove('ci-dd-open'); ddEl.innerHTML = ''; return; }
+  ciPositionDD(ddEl, anchorEl);
+  ddEl.innerHTML = items.map((item, i) =>
+    `<div class="ci-dd-item" data-idx="${i}"><span class="ci-dd-item-key">${escHtml(item.key)}</span>${escHtml(item.summary)}</div>`
+  ).join('');
+  ddEl.classList.add('ci-dd-open');
+  ddEl.querySelectorAll('.ci-dd-item').forEach((el, i) => {
+    el.addEventListener('mousedown', e => { e.preventDefault(); onSelect(items[i]); });
+  });
+}
+
+// ── label input binding ──
+
+function ciBindLabelInput() {
+  const input = document.getElementById('ci-labels-input');
+  document.getElementById('ci-labels-wrap').addEventListener('click', () => input.focus());
+
+  let debounce = null;
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    const q = input.value.trim();
+    if (!q) { ciCloseDD('ci-labels-dropdown'); return; }
+    debounce = setTimeout(async () => {
+      const suggestions = await JiraAPI.searchLabels(q);
+      // Exclude already-selected labels; always keep the literal typed value as first option
+      const filtered = suggestions.filter(l => !ciSelectedLabels.includes(l));
+      if (!ciSelectedLabels.includes(q) && !filtered.includes(q)) filtered.unshift(q);
+      ciOpenDD('ci-labels-dropdown', document.getElementById('ci-labels-wrap'), filtered.slice(0, 8), item => {
+        ciAddLabel(typeof item === 'string' ? item : item.label);
+        input.focus();
+      });
+    }, 200);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const v = input.value.trim().replace(/,$/, '');
+      if (v) ciAddLabel(v);
+    } else if (e.key === 'Backspace' && !input.value && ciSelectedLabels.length) {
+      ciSelectedLabels.pop();
+      ciRenderLabels();
+    } else if (e.key === 'Escape') {
+      ciCloseDD('ci-labels-dropdown');
+    }
+  });
+  input.addEventListener('blur', () => setTimeout(() => ciCloseDD('ci-labels-dropdown'), 150));
+}
+
+// ── assignee input binding ──
+
+function ciBindAssigneeInput() {
+  const input   = document.getElementById('ci-assignee-input');
+  const hiddenN = document.getElementById('ci-assignee-name');
+  let debounce  = null;
+
+  input.addEventListener('input', () => {
+    ciAssignee = null;
+    hiddenN.value = '';
+    clearTimeout(debounce);
+    const q = input.value.trim();
+    if (!q) { ciCloseDD('ci-assignee-dropdown'); return; }
+    debounce = setTimeout(async () => {
+      try {
+        const users = await JiraAPI.searchUsers(q);
+        const items = (users || []).map(u => ({
+          label: u.displayName || u.name || '',
+          name:  u.name || u.accountId || '',
+        }));
+        ciOpenDD('ci-assignee-dropdown', input, items, item => {
+          ciAssignee    = item;
+          input.value   = item.label;
+          hiddenN.value = item.name;
+          ciCloseDD('ci-assignee-dropdown');
+        });
+      } catch { ciCloseDD('ci-assignee-dropdown'); }
+    }, 250);
+  });
+
+  input.addEventListener('blur',    () => setTimeout(() => ciCloseDD('ci-assignee-dropdown'), 150));
+  input.addEventListener('keydown', e => { if (e.key === 'Escape') ciCloseDD('ci-assignee-dropdown'); });
+}
+
+// ── linked issue row ──
+
+function ciAddLinkRow() {
+  const list = document.getElementById('ci-links-list');
+  const row  = document.createElement('div');
+  row.className = 'ci-link-row';
+
+  const seen    = new Set();
+  const options = [];
+  for (const lt of ciLinkTypes) {
+    for (const dir of ['outward', 'inward']) {
+      const lbl = lt[dir];
+      if (!seen.has(lbl)) {
+        seen.add(lbl);
+        options.push({ value: `${lt.id}:${dir}`, label: lbl });
+      }
+    }
+  }
+
+  row.innerHTML = `
+    <select class="ci-link-type-sel">
+      ${options.map(o => `<option value="${escHtml(o.value)}">${escHtml(o.label)}</option>`).join('')}
+    </select>
+    <div class="ci-link-row-issue">
+      <input class="ci-link-issue-input" type="text" placeholder="Issue key or summary…" autocomplete="off" />
+      <div class="ci-dropdown ci-link-dd"></div>
+    </div>
+    <button class="ci-link-remove" title="Remove">×</button>`;
+
+  list.appendChild(row);
+  row.querySelector('.ci-link-remove').addEventListener('click', () => row.remove());
+  ciBindLinkIssueInput(row);
+}
+
+function ciBindLinkIssueInput(row) {
+  const input = row.querySelector('.ci-link-issue-input');
+  const dd    = row.querySelector('.ci-link-dd');
+  let debounce = null;
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    const q = input.value.trim();
+    if (!q) { dd.classList.remove('ci-dd-open'); dd.innerHTML = ''; return; }
+    debounce = setTimeout(async () => {
+      try {
+        const data   = await JiraAPI.searchIssues(q);
+        const issues = (data.issues || []).slice(0, 7)
+          .map(iss => ({ key: iss.key, summary: (iss.fields.summary || '').slice(0, 55) }));
+        ciOpenDDEl(dd, input, issues, item => {
+          input.value = item.key;
+          dd.classList.remove('ci-dd-open');
+          dd.innerHTML = '';
+        });
+      } catch { dd.classList.remove('ci-dd-open'); }
+    }, 300);
+  });
+
+  input.addEventListener('blur', () => setTimeout(() => { dd.classList.remove('ci-dd-open'); dd.innerHTML = ''; }, 150));
+}
+
+// ── submit ──
+
+async function ciSubmit() {
+  const projectKey = document.getElementById('ci-project').value;
+  const issueTypeEl = document.getElementById('ci-issuetype');
+  const summary    = document.getElementById('ci-summary').value.trim();
+  const description = document.getElementById('ci-description').value.trim();
+  const errorEl    = document.getElementById('ci-error');
+  const submitBtn  = document.getElementById('ci-submit-btn');
+
+  errorEl.classList.add('hidden');
+  if (!projectKey)       { ciShowError('Project is required.'); return; }
+  if (!issueTypeEl.value){ ciShowError('Issue Type is required.'); return; }
+  if (!summary)          { ciShowError('Summary is required.'); return; }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating…';
+
+  const fields = {
+    project:   { key: projectKey },
+    issuetype: { id: issueTypeEl.value },
+    summary,
+  };
+  if (description)          fields.description = description;
+  if (ciSelectedLabels.length) fields.labels   = [...ciSelectedLabels];
+
+  const assigneeName = document.getElementById('ci-assignee-name').value;
+  if (assigneeName) fields.assignee = { name: assigneeName };
+
+  const advOpen = document.getElementById('ci-advanced-body').classList.contains('ci-adv-open');
+  if (advOpen) {
+    const estimate  = document.getElementById('ci-estimate').value.trim();
+    const remaining = document.getElementById('ci-remaining').value.trim();
+    if (estimate || remaining) {
+      fields.timetracking = {};
+      if (estimate)  fields.timetracking.originalEstimate  = estimate;
+      if (remaining) fields.timetracking.remainingEstimate = remaining;
+    }
+  }
+
+  try {
+    const created = await JiraAPI.createIssue(fields);
+    const newKey  = created.key;
+
+    if (advOpen) {
+      const linkRows = document.querySelectorAll('#ci-links-list .ci-link-row');
+      for (const rowEl of linkRows) {
+        const typeVal  = rowEl.querySelector('.ci-link-type-sel').value;
+        const issueKey = rowEl.querySelector('.ci-link-issue-input').value.trim().toUpperCase();
+        if (!issueKey || !typeVal) continue;
+        const [typeId, dir] = typeVal.split(':');
+        const payload = dir === 'outward'
+          ? { type: { id: typeId }, outwardIssue: { key: newKey },     inwardIssue: { key: issueKey } }
+          : { type: { id: typeId }, outwardIssue: { key: issueKey },   inwardIssue: { key: newKey } };
+        try { await JiraAPI.createIssueLink(payload); } catch (e) { console.warn('link failed', e); }
+      }
+    }
+
+    submitBtn.textContent  = `Created ${newKey} ✓`;
+    submitBtn.style.background = '#36B37E';
+    setTimeout(() => { ciClose(); loadMyIssues(); }, 1800);
+
+  } catch (err) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create';
+    ciShowError(friendlyError(err));
+  }
+}
+
+function ciShowError(msg) {
+  const el = document.getElementById('ci-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+// ── bind all events ──
+
+(function ciInit() {
+  document.getElementById('create-btn').addEventListener('click', ciOpen);
+  document.getElementById('ci-close-btn').addEventListener('click', ciClose);
+  document.getElementById('ci-cancel-btn').addEventListener('click', ciClose);
+
+  document.getElementById('ci-project').addEventListener('change', e => {
+    ciLoadIssueTypes(e.target.value);
+  });
+
+  document.getElementById('ci-advanced-btn').addEventListener('click', () => {
+    const body = document.getElementById('ci-advanced-body');
+    const btn  = document.getElementById('ci-advanced-btn');
+    const open = body.classList.toggle('ci-adv-open');
+    btn.textContent = open ? 'Advanced ▴' : 'Advanced ▾';
+  });
+
+  document.getElementById('ci-add-link-btn').addEventListener('click', ciAddLinkRow);
+  document.getElementById('ci-submit-btn').addEventListener('click', ciSubmit);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !ciPanel.classList.contains('hidden')) ciClose();
+  });
+
+  ciBindLabelInput();
+  ciBindAssigneeInput();
+}());

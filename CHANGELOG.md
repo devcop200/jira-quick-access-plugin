@@ -1,5 +1,44 @@
 # Changelog
 
+## [1.3.0] — 2026-05-14
+
+### Added
+- **Pinned Tasks** — pin any task in My Issues with the 📌 button (gray = unpinned, full-color = pinned). Pinned tasks appear in a dedicated **Pinned** section between the Time Tracking section and My Tasks. Starting a timer on a pinned task moves it to Time Tracking; stopping the timer returns it to Pinned. Pins persist across popup close/reopen via `chrome.storage.local`.
+- **Local search in My Issues** — real-time search input below the filter chips filters tasks by ID and summary on every keystroke; case-insensitive, works with special characters (`[`, `]`, `*`, etc.); layered on top of the active status filter tab.
+
+### Fixed
+- Issue type badge colours — Sub-task check was being swallowed by the Task check; Sub-task now correctly shows light blue (`Sb`) and Task shows blue (`T`)
+- **Blocked** filter chip now has a red background/border to stand out from other status chips
+- Filter chips bar is now sticky — only the issue list scrolls; filter chips, search input, and Time Tracking section stay fixed at the top
+- Settings page description texts now reference the correct **1-minute** poll interval instead of "5 minutes"
+
+---
+
+## [1.2.1] — 2026-05-14
+
+### Changed
+- Background polling interval reduced from 5 minutes to **1 minute** — assignments, mentions, and returned tickets are now detected much faster
+
+---
+
+## [1.2.0] — 2026-05-14
+
+### Added — Create Issue
+- **+ button** in the blue navbar opens a slide-in Create Issue form (white panel)
+- **Project** dropdown — all projects fetched from Jira, sorted alphabetically
+- **Issue Type** dropdown — populated per selected project; Task pre-selected by default
+- **Labels** tag-chip input — autocomplete from existing Jira labels while typing; press Enter or comma to confirm; new labels are created on submit if they don't exist
+- **Assignee** field — pre-filled with the current user; typeahead search to change assignee
+- **Summary** and **Description** fields
+- **Advanced** collapsible section:
+  - Estimate and Remaining Estimate (Jira time format, e.g. `2h 30m`)
+  - Linked Issues — one or more rows each with a link type dropdown (relates to / blocks / is blocked by / clones / is cloned by / duplicates / is duplicated by — all link types fetched live from Jira) and a predictive issue search input
+- On success, button turns green showing the new issue key; panel closes and My Issues refreshes after 1.8 s
+- Escape key closes the panel; Cancel button also closes it
+- **Default Project** setting in the Settings page — choose a project that is pre-selected every time the Create Issue form opens; changeable per issue from the dropdown
+
+---
+
 ## [1.1.1] — 2026-05-14
 
 ### Fixed

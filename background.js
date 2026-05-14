@@ -22,7 +22,7 @@ setIcon();
 // ── Watch Filter Polling ───────────────────────────────────────────────────────
 
 const ALARM_NAME   = 'jira-watch';
-const POLL_MINUTES = 5;
+const POLL_MINUTES = 1;
 
 function getSettings() {
   return new Promise(r =>

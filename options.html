@@ -44,7 +44,7 @@
       <div class="card">
         <h2>Returned Tickets</h2>
         <p class="section-desc">
-          Issues matching this JQL are polled every 5 minutes in the background.
+          Issues matching this JQL are polled every minute in the background.
           Matching tickets appear in the <strong>Notifications</strong> tab and you get a desktop
           notification when the count increases.
         </p>
@@ -65,6 +65,27 @@
       </div>
 
       <div class="card">
+        <h2>Create Issue Defaults</h2>
+        <p class="section-desc">
+          Set defaults used when opening the Create Issue form from the popup.
+        </p>
+
+        <div class="field">
+          <label for="default-project">Default Project</label>
+          <select id="default-project" class="opt-select">
+            <option value="">Loading projects…</option>
+          </select>
+          <p class="field-hint">Pre-selected project when you click + in the popup. You can still change it per issue.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="save-defaults-btn">Save</button>
+          <span class="save-indicator" id="defaults-save-ind">✓ Saved</span>
+        </div>
+        <div class="status" id="defaults-status"></div>
+      </div>
+
+      <div class="card">
         <h2>Watching</h2>
 
         <div class="toggle-field">
@@ -79,7 +100,7 @@
       <div class="card">
         <h2>Notifications</h2>
         <p class="section-desc">
-          The extension polls Jira every 5 minutes in the background and can show desktop
+          The extension polls Jira every minute in the background and can show desktop
           notifications when something needs your attention.
         </p>
 

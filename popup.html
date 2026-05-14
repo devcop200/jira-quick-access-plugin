@@ -13,10 +13,71 @@
     </div>
     <div id="tt-chips"></div>
     <div class="header-right">
+      <button class="icon-btn ci-create-btn" id="create-btn" title="Create Issue">+</button>
       <button class="icon-btn" id="refresh-btn" title="Refresh">↻</button>
       <button class="icon-btn" id="settings-btn" title="Settings">⚙</button>
     </div>
   </header>
+
+  <div id="create-issue-panel" class="hidden">
+    <div class="ci-form-header">
+      <span class="ci-form-title">Create Issue</span>
+      <button class="icon-btn ci-icon-btn-dark" id="ci-close-btn" title="Close">×</button>
+    </div>
+    <div class="ci-form-body">
+      <div class="ci-row">
+        <label class="ci-label" for="ci-project">Project *</label>
+        <select id="ci-project" class="ci-select"></select>
+      </div>
+      <div class="ci-row">
+        <label class="ci-label" for="ci-issuetype">Issue Type *</label>
+        <select id="ci-issuetype" class="ci-select"></select>
+      </div>
+      <div class="ci-row">
+        <label class="ci-label" for="ci-summary">Summary *</label>
+        <input id="ci-summary" class="ci-input" type="text" placeholder="Short, descriptive title" />
+      </div>
+      <div class="ci-row">
+        <label class="ci-label" for="ci-description">Description</label>
+        <textarea id="ci-description" class="ci-textarea" rows="3" placeholder="Describe the issue…"></textarea>
+      </div>
+      <div class="ci-row ci-row-dd">
+        <label class="ci-label">Labels</label>
+        <div class="ci-tags-wrap" id="ci-labels-wrap">
+          <div class="ci-tags-chips" id="ci-labels-chips"></div>
+          <input id="ci-labels-input" class="ci-tags-text" type="text" placeholder="Add label…" autocomplete="off" />
+        </div>
+        <div class="ci-dropdown" id="ci-labels-dropdown"></div>
+      </div>
+      <div class="ci-row ci-row-dd">
+        <label class="ci-label" for="ci-assignee-input">Assignee</label>
+        <input id="ci-assignee-input" class="ci-input" type="text" placeholder="Search user…" autocomplete="off" />
+        <input id="ci-assignee-name" type="hidden" />
+        <div class="ci-dropdown" id="ci-assignee-dropdown"></div>
+      </div>
+      <button class="ci-advanced-btn" id="ci-advanced-btn">Advanced ▾</button>
+      <div class="ci-advanced-body" id="ci-advanced-body">
+        <div class="ci-row">
+          <label class="ci-label" for="ci-estimate">Estimate</label>
+          <input id="ci-estimate" class="ci-input ci-input-half" type="text" placeholder="e.g. 2h 30m" />
+        </div>
+        <div class="ci-row">
+          <label class="ci-label" for="ci-remaining">Remaining Estimate</label>
+          <input id="ci-remaining" class="ci-input ci-input-half" type="text" placeholder="e.g. 1h" />
+        </div>
+        <div class="ci-row">
+          <label class="ci-label">Linked Issues</label>
+          <div id="ci-links-list"></div>
+          <button class="ci-add-link-btn" id="ci-add-link-btn">+ Add link</button>
+        </div>
+      </div>
+      <div id="ci-error" class="ci-error hidden"></div>
+      <div class="ci-footer">
+        <button class="ci-btn-secondary" id="ci-cancel-btn">Cancel</button>
+        <button class="ci-btn-primary" id="ci-submit-btn">Create</button>
+      </div>
+    </div>
+  </div>
 
   <div id="not-configured" class="hidden">
     <p>No Jira connection configured.<br/>Add your Jira URL and Personal Access Token to get started.</p>
@@ -34,6 +95,9 @@
 
     <div id="my-issues-panel" class="panel">
       <div id="filter-bar" class="hidden"></div>
+      <div id="my-issues-search-box">
+        <input type="text" id="my-issues-search" placeholder="Search by ID or summary…" autocomplete="off" />
+      </div>
       <div id="tt-section" class="hidden"></div>
       <div id="tt-my-tasks-header" class="tt-my-tasks-label hidden">My Tasks</div>
       <div id="issues-container"></div>

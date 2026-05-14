@@ -34,14 +34,13 @@ body {
 .page-header h1 { font-size: 18px; font-weight: 600; }
 
 .container {
-  max-width: 920px;
   margin: 40px auto;
   padding: 0 24px;
 }
 
 .cards-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 24px;
   align-items: start;
 }
@@ -219,6 +218,25 @@ textarea:focus {
   accent-color: #0052CC;
   flex-shrink: 0;
 }
+
+.opt-select {
+  width: 100%;
+  border: 2px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: #172b4d;
+  background: #fafbfc;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+.opt-select:focus {
+  border-color: #0052CC;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(0,82,204,0.12);
+}
+.opt-select:disabled { color: #97a0af; }
 
 .save-indicator {
   font-size: 12px;

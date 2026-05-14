@@ -14,9 +14,32 @@
 
 ## My Issues
 
-- [ ] Status filter bar must be sticky (fixed position) so it doesn't scroll away with the issue list
-- [ ] "Blocked" filter chip must have a red background/color to stand out
-- [ ] Issue type badge colors must be distinct per type:
+- [x] **Pinned Tasks** — add a pin button to each task card in My Issues.
+      - Pin button appearance: gray when unpinned, red when pinned; clicking again unpins (red → gray).
+      - Pinned tasks move into a new **Pinned Tasks** section above the regular My Tasks list.
+      - Section order (top → bottom): Time Tracking (if active) → Pinned Tasks (if any) → My Tasks.
+      - Starting the timer on a *pinned* task moves it into Time Tracking; if no other pins remain, Pinned Tasks section disappears.
+      - Starting the timer on a *non-pinned* task moves it into Time Tracking; Pinned Tasks section stays.
+      - Stopping the timer returns the task to Pinned Tasks if it was pinned before tracking, otherwise to My Tasks.
+      - Persist pinned IDs in `chrome.storage.local` (key `pinnedTaskIds: string[]`) so pins survive popup close/reopen.
+      - Track a `wasPinnedBeforeTracking` flag per task so stop-timer returns it to the correct section.
+
+- [x] **Local search in My Issues** — add a search input below the filter tabs, above the task list.
+      - Placeholder: `Search by ID or summary…`
+      - Fires on every keystroke (real-time, no submit button).
+      - Case-insensitive, partial-match on both task ID (e.g. `PROJ-11111`) and summary text.
+      - Special characters treated as literals (use `String.includes` or escape input before `RegExp`).
+      - Search is a *secondary* filter layered on top of the active tab filter:
+        - "All" tab + search "11111" → searches all issues for "11111"
+        - "Blocked" tab + search "up" → searches only within already-blocked issues
+      - Switching filter tabs keeps the search text and re-applies it to the new tab's results.
+      - Pinned Tasks and My Tasks sub-sections each filter independently.
+      - No new Jira API calls — operates purely on the already-fetched in-memory task list.
+      - Examples: typing "up"/"UP"/"Up" matches summary "Update Rancher version"; typing "[D" matches "[DevOps] Deploy pipeline".
+
+- [x] Status filter bar must be sticky (fixed position) so it doesn't scroll away with the issue list
+- [x] "Blocked" filter chip must have a red background/color to stand out
+- [x] Issue type badge colors must be distinct per type:
       S (Story) → green, T (Task) → blue, B (Bug) → red, E (Epic) → purple, Sub-task → light blue, etc.
       Currently all use `issueTypeColor()` in popup.js but the initials mapping ("S", "T") needs to be consistent
 

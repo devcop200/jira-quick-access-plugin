@@ -6,11 +6,27 @@ A Chrome extension for fast, focused access to a self-hosted Jira instance (Serv
 
 | Tab | Description |
 |-----|-------------|
-| **My Issues** | All tickets assigned to you, filterable by status with a sticky filter bar |
+| **My Issues** | All tickets assigned to you, filterable by status, searchable by ID or summary, with pinned tasks support |
 | **Search** | Full-text JQL search across unresolved issues |
 | **Logged Work** | Donut chart of time logged today / this week / this month / custom range |
 | **Watching** | Issues you are watching (optionally hiding Done tickets) |
 | **Notifications** | Unified feed of Returned tickets, new Assignments, and Mentions — each dismissible |
+
+### Create Issue
+Click the **+** button in the navbar to open the Create Issue form:
+
+- **Project** dropdown (all projects, alphabetically sorted)
+- **Issue Type** dropdown (per-project, Task pre-selected)
+- **Labels** — tag-chip input with autocomplete against existing labels; new labels are created on submit
+- **Assignee** — pre-filled with you; typeahead search to change
+- **Summary** and **Description**
+- **Advanced** section (collapsible): Estimate, Remaining Estimate, and Linked Issues with live link-type dropdown and predictive issue search
+
+### My Issues
+
+- **Status filter chips** — sticky bar at the top lets you filter by Jira status (All / In Progress / Blocked / etc.); the Blocked chip is highlighted red
+- **Local search** — search box below the filter chips filters by task ID or summary on every keystroke; case-insensitive and special-character safe; layered on top of the active status filter
+- **Pinned tasks** — click the 📌 button on any task card to pin it; pinned tasks appear in a **Pinned** section above My Tasks, below the Time Tracking section; pins persist across popup open/close; unpinning or starting a timer moves the task to the appropriate section automatically
 
 ### Local time tracking
 Track time spent on any ticket directly from the popup — no Jira access required:
@@ -24,7 +40,7 @@ Track time spent on any ticket directly from the popup — no Jira access requir
 - Minimum session duration of **1 minute** (stopping at 45 s records 1 m)
 - All data is stored locally in `chrome.storage.local` — nothing is sent to Jira
 
-### Background polling (every 5 min)
+### Background polling (every 1 min)
 - Checks your **Returned Tickets** JQL filter and notifies when the count rises
 - Detects new **Assignments** and fires a desktop notification
 - Detects new comment **Mentions** (`[~username]`) and fires `"John Doe mentioned you in PROJ-123"`
@@ -51,7 +67,7 @@ All settings are in the **Settings** page (⚙ button):
 |---------|-------------|
 | Jira URL | Base URL of your instance, e.g. `https://jira.example.com` |
 | Personal Access Token | Generated at Jira → Profile → Personal Access Tokens |
-| Returned Tickets JQL | JQL filter polled every 5 min, e.g. `labels = my_label AND assignee = currentUser() AND status != Done` |
+| Returned Tickets JQL | JQL filter polled every 1 min, e.g. `labels = my_label AND assignee = currentUser() AND status != Done` |
 | Watching — exclude Done | Hides resolved tickets from the Watching tab |
 | Notifications — Returned | Toggle desktop notifications for returned tickets |
 | Notifications — Mentions | Toggle desktop notifications for new mentions |

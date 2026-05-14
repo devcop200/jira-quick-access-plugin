@@ -203,3 +203,46 @@ testWatchBtn.addEventListener('click', async () => {
     testWatchBtn.textContent = 'Test Filter';
   }
 });
+
+// ── Create Issue Defaults ──────────────────────────────────────────────────────
+
+const defaultProjectSel  = document.getElementById('default-project');
+const saveDefaultsBtn    = document.getElementById('save-defaults-btn');
+const defaultsSaveInd    = document.getElementById('defaults-save-ind');
+const defaultsStatusEl   = document.getElementById('defaults-status');
+
+async function loadProjectsForDefaults() {
+  const { jiraUrl, jiraPat } = await new Promise(r =>
+    chrome.storage.local.get(['jiraUrl', 'jiraPat'], r)
+  );
+  if (!jiraUrl || !jiraPat) {
+    defaultProjectSel.innerHTML = '<option value="">Configure connection first</option>';
+    defaultProjectSel.disabled = true;
+    return;
+  }
+  try {
+    const projects = await JiraAPI.getProjects();
+    const sorted   = (projects || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+    defaultProjectSel.innerHTML =
+      '<option value="">— None —</option>' +
+      sorted.map(p => `<option value="${p.key}">${p.name} (${p.key})</option>`).join('');
+    defaultProjectSel.disabled = false;
+
+    const { defaultProject } = await new Promise(r => chrome.storage.local.get('defaultProject', r));
+    if (defaultProject) defaultProjectSel.value = defaultProject;
+  } catch {
+    defaultProjectSel.innerHTML = '<option value="">Failed to load projects</option>';
+    defaultProjectSel.disabled = true;
+  }
+}
+
+saveDefaultsBtn.addEventListener('click', () => {
+  const key = defaultProjectSel.value;
+  chrome.storage.local.set({ defaultProject: key }, () => {
+    defaultsStatusEl.className = 'status';
+    defaultsSaveInd.classList.add('visible');
+    setTimeout(() => defaultsSaveInd.classList.remove('visible'), 2500);
+  });
+});
+
+loadProjectsForDefaults();

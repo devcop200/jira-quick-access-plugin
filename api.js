@@ -30,7 +30,8 @@ const JiraAPI = {
       throw new Error(`HTTP_${res.status}: ${text.slice(0, 200)}`);
     }
 
-    return res.json();
+    const body = await res.text().catch(() => '');
+    return body ? JSON.parse(body) : null;
   },
 
   _currentUser: null,
@@ -229,6 +230,70 @@ const JiraAPI = {
     );
 
     return results.filter(Boolean);
+  },
+
+  async getProjects() {
+    return this.request('project?maxResults=100');
+  },
+
+  async getCreateMeta(projectKey) {
+    // Jira 9+ exposes per-project endpoint; older versions use the legacy createmeta
+    try {
+      const data = await this.request(
+        `issue/createmeta/${encodeURIComponent(projectKey)}/issuetypes?maxResults=50`
+      );
+      return { issuetypes: data.values || [] };
+    } catch (err) {
+      if (!err.message.startsWith('HTTP_404') && !err.message.startsWith('HTTP_405')) throw err;
+    }
+    const data = await this.request(
+      `issue/createmeta?projectKeys=${encodeURIComponent(projectKey)}&expand=projects.issuetypes`
+    );
+    const project = (data.projects || []).find(p => p.key === projectKey);
+    return { issuetypes: project?.issuetypes || [] };
+  },
+
+  async searchLabels(query) {
+    const q = encodeURIComponent(query);
+    // Jira's dedicated label suggest endpoint (works on Server/DC)
+    try {
+      const data = await this.request(
+        `../1.0/labels/suggest?query=${q}&maxResults=10`
+      );
+      const suggestions = data?.suggestions || [];
+      return suggestions.map(s => (typeof s === 'string' ? s : s.label)).filter(Boolean);
+    } catch {}
+    // Fallback: standard label list endpoint, filter client-side
+    try {
+      const data = await this.request('label?maxResults=200');
+      const all = Array.isArray(data) ? data : (data?.values || []);
+      return all.filter(l => l.toLowerCase().includes(query.toLowerCase())).slice(0, 10);
+    } catch {}
+    return [];
+  },
+
+  async searchUsers(query) {
+    return this.request(
+      `user/search?username=${encodeURIComponent(query)}&maxResults=10&includeActive=true`
+    );
+  },
+
+  async getLinkTypes() {
+    return this.request('issueLinkType');
+  },
+
+  async createIssue(fields) {
+    return this.request('issue', {
+      method: 'POST',
+      body: JSON.stringify({ fields }),
+    });
+  },
+
+  async createIssueLink(payload) {
+    return this.request('issueLink', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 
   issueUrl(key) {
