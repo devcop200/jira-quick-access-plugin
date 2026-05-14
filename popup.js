@@ -1241,7 +1241,7 @@ function ttRenderSection() {
       return `<div class="tt-issue-row" data-key="${key}">
         <span class="tt-section-counter${running ? '' : ' paused'}" data-key="${key}">${ttFormatMs(ttGetLiveMs(key))}</span>
         <div class="tt-issue-info">
-          <div class="tt-issue-key">${escHtml(key)}</div>
+          <div class="tt-issue-key"><span class="tt-issue-key-link" data-tt-open="${escHtml(key)}">${escHtml(key)}</span></div>
           <div class="tt-issue-summary">${escHtml(e.summary || key)}</div>
         </div>
         <div class="tt-controls">
@@ -1360,6 +1360,13 @@ function bindSessionHistoryEvents(container) {
 }
 
 function bindTTSection(container) {
+  container.querySelectorAll('[data-tt-open]').forEach(el => {
+    el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      openIssue(el.dataset.ttOpen);
+    });
+  });
+
   container.querySelectorAll('[data-tt-play]').forEach(btn => {
     btn.addEventListener('click', ev => {
       ev.stopPropagation();
