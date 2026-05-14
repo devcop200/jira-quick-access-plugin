@@ -1371,11 +1371,15 @@ function ttRenderSection() {
 
 function ttBuildSessionHistoryHtml(e, key) {
   return e.sessions.slice().reverse().map(s => {
+    const logBtn = s.logged
+      ? `<button class="tt-session-log tt-log-done" disabled title="Already logged to Jira">✓ Logged</button>`
+      : `<button class="tt-session-log" data-session-log title="Log work to Jira">Log to Jira</button>`;
     return `<div class="tt-session-entry-wrap" data-session-key="${escHtml(key)}" data-session-start="${s.startTs}">
       <div class="tt-session-entry">
         <span class="tt-session-duration">${ttFormatMsCompact(s.durationMs)}</span>
         <span class="tt-session-date">${new Date(s.startTs).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
         <button class="tt-notes-toggle" data-session-toggle>▾ Notes</button>
+        ${logBtn}
         <button class="tt-session-delete" title="Remove session">×</button>
       </div>
       <div class="tt-session-notes-body hidden">
@@ -1389,6 +1393,42 @@ function ttBuildSessionHistoryHtml(e, key) {
 function ttRenderSessionHistory(key, e) {
   if (!e.sessions.length) return '';
   return `<div class="tt-session-history" data-history-key="${escHtml(key)}"><div class="tt-session-label">Past sessions</div>${ttBuildSessionHistoryHtml(e, key)}</div>`;
+}
+
+function ttFormatStarted(ts) {
+  const d   = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  const off = -d.getTimezoneOffset();
+  const sign = off >= 0 ? '+' : '-';
+  const oh = pad(Math.floor(Math.abs(off) / 60));
+  const om = pad(Math.abs(off) % 60);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000${sign}${oh}${om}`;
+}
+
+async function ttLogSession(key, startTs, btn) {
+  const e = ttTracker[key];
+  if (!e) return;
+  const sess = e.sessions.find(s => s.startTs === startTs);
+  if (!sess || sess.logged) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Logging…';
+
+  try {
+    const secs    = Math.max(60, Math.round(sess.durationMs / 1000));
+    const started = ttFormatStarted(sess.startTs);
+    await JiraAPI.logWork(key, secs, started, sess.notes || undefined);
+    sess.logged = true;
+    ttSave();
+    btn.textContent = '✓ Logged';
+    btn.classList.add('tt-log-done');
+  } catch (err) {
+    btn.disabled    = false;
+    btn.textContent = 'Log to Jira';
+    btn.title = friendlyError(err);
+    btn.classList.add('tt-log-error');
+    setTimeout(() => { btn.classList.remove('tt-log-error'); btn.title = 'Log work to Jira'; }, 3000);
+  }
 }
 
 function ttDeleteSession(key, startTs) {
@@ -1431,6 +1471,17 @@ function bindSessionHistoryEvents(container) {
       const open = !body.classList.contains('hidden');
       body.classList.toggle('hidden');
       btn.textContent = open ? '▾ Notes' : '▴ Notes';
+    });
+  });
+
+  container.querySelectorAll('[data-session-log]').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const wrap    = btn.closest('.tt-session-entry-wrap');
+      const key     = wrap?.dataset.sessionKey;
+      const startTs = Number(wrap?.dataset.sessionStart);
+      if (!key || !startTs) return;
+      ttLogSession(key, startTs, btn);
     });
   });
 

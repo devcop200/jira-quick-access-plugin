@@ -37,8 +37,9 @@ Track time spent on any ticket directly from the popup — no Jira access requir
 - Starting a new timer **auto-pauses** the currently running one — only one timer runs at a time
 - **Session notes** — write notes per session with auto-save every 5 seconds and an explicit Save button
 - **Session history** — every stopped session is saved with its duration, date, and notes; notes are editable after the fact; individual sessions can be deleted
+- **Log Work to Jira** — each session has a **Log to Jira** button that posts the duration and notes as a Jira worklog entry; once logged the button turns green (**✓ Logged**) and cannot be re-submitted
 - Minimum session duration of **1 minute** (stopping at 45 s records 1 m)
-- All data is stored locally in `chrome.storage.local` — nothing is sent to Jira
+- Tracking data is stored locally in `chrome.storage.local`; only explicitly logged sessions are sent to Jira
 
 ### Dark mode
 

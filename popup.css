@@ -1033,6 +1033,24 @@ header {
   transition: background 0.12s;
 }
 .tt-notes-toggle:hover { background: #ebecf0; }
+
+.tt-session-log {
+  background: #0052cc;
+  border: none;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.tt-session-log:hover:not(:disabled) { background: #0747a6; }
+.tt-session-log.tt-log-done { background: #36b37e; cursor: default; }
+.tt-session-log.tt-log-error { background: #ff5630; }
+.tt-session-log:disabled { opacity: 0.75; }
+
 .tt-session-notes-body {
   padding: 4px 0 6px 48px;
 }
@@ -1797,6 +1815,10 @@ html.dark .tt-notes-toggle {
 }
 html.dark .tt-notes-toggle:hover { background: #2d3347; }
 html.dark .tt-notes-pre { color: #a3b2c4; }
+
+html.dark .tt-session-log { background: #1868db; }
+html.dark .tt-session-log:hover:not(:disabled) { background: #2684ff; }
+html.dark .tt-session-log.tt-log-done { background: #2d8b5a; }
 
 /* ── TT time chip ── */
 html.dark .tt-time-chip {

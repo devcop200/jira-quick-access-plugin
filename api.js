@@ -296,6 +296,15 @@ const JiraAPI = {
     });
   },
 
+  async logWork(issueKey, timeSpentSeconds, started, comment) {
+    const body = { timeSpentSeconds, started };
+    if (comment) body.comment = comment;
+    return this.request(`issue/${issueKey}/worklog`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+
   issueUrl(key) {
     return new Promise(resolve =>
       chrome.storage.local.get(['jiraUrl'], ({ jiraUrl }) =>

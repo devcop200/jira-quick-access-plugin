@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0] — 2026-05-14
+
+### Added
+- **Log Work to Jira** — every completed session in the session history now has a **Log to Jira** button. Clicking it posts the session duration and notes (as a worklog comment) directly to Jira via `POST /rest/api/2/issue/{key}/worklog`. Once logged the button turns into a green **✓ Logged** badge so it cannot be double-submitted. Works from both the TT section (notes panel) and the issue detail panel (Local Time Tracking section).
+
+---
+
 ## [1.4.0] — 2026-05-14
 
 ### Added
