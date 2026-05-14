@@ -28,8 +28,28 @@ Click the **+** button in the navbar to open the Create Issue form:
 - **Local search** — search box below the filter chips filters by task ID or summary on every keystroke; case-insensitive and special-character safe; layered on top of the active status filter
 - **Pinned tasks** — click the 📌 button on any task card to pin it; pinned tasks appear in a **Pinned** section above My Tasks, below the Time Tracking section; pins persist across popup open/close; unpinning or starting a timer moves the task to the appropriate section automatically
 
+### Issue actions (per card)
+
+Each issue card has a 2×2 button group:
+
+| Position | Button | Action |
+|---|---|---|
+| Top-left | ⏱ | Start / pause local timer |
+| Top-right | ⊕ | Create a subtask under this issue |
+| Bottom-left | 📌 | Pin / unpin |
+| Bottom-right | ⊙ | Manually log work to Jira |
+
+#### Create Subtask (`⊕`)
+Opens a panel pre-linked to the parent issue. Select a subtask type, fill in Summary and optional Description, then Create. Not shown on sub-task issues (Jira does not support nested subtasks).
+
+#### Change Status
+Open any issue's detail panel (click `›`) — a **Change Status** row at the top lists all available transitions as buttons. Clicking one transitions the issue and refreshes the panel automatically.
+
+#### Manual Log Work (`⊙`)
+Opens an inline form with **Duration** (e.g. `2h 30m`), **Date**, **Time**, and optional **Comment**. Submits directly to Jira's worklog API.
+
 ### Local time tracking
-Track time spent on any ticket directly from the popup — no Jira access required:
+Track time spent on any ticket directly from the popup:
 
 - **Clock button** on every issue row starts or pauses a timer
 - **Time Tracking section** appears above My Issues showing all active timers; the running one is always first

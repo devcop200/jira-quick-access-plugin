@@ -317,8 +317,8 @@ header {
 }
 
 .issue-btn-group {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 3px;
 }
 
@@ -1967,4 +1967,160 @@ html.dark #issues-container::-webkit-scrollbar-thumb {
 html.dark #issues-container::-webkit-scrollbar-thumb:hover {
   background: #4c5470;
 }
+
+/* ── Invisible placeholder for missing grid slots ── */
+.btn-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  visibility: hidden;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ── Subtask button ── */
+.subtask-btn {
+  background: #f4f5f7;
+  border: 1px solid #dfe1e6;
+  cursor: pointer;
+  color: #97a0af;
+  font-size: 16px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.subtask-btn:hover { background: #deebff; color: #0052CC; border-color: #0052CC; }
+
+/* ── Manual log button ── */
+.manual-log-btn {
+  background: #f4f5f7;
+  border: 1px solid #dfe1e6;
+  cursor: pointer;
+  color: #97a0af;
+  font-size: 16px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.manual-log-btn:hover { background: #deebff; color: #0052CC; border-color: #0052CC; }
+
+/* ── Manual log panel ── */
+.manual-log-panel {
+  border-bottom: 1px solid #ebecf0;
+  background: #fafbfc;
+  padding: 10px 14px;
+}
+.mlf-inner { display: flex; flex-direction: column; gap: 8px; }
+.mlf-label { font-size: 10px; font-weight: 700; color: #7a869a; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 3px; }
+.mlf-row { display: flex; flex-direction: column; }
+.mlf-row-half { flex-direction: row; gap: 8px; }
+.mlf-row-half > div { flex: 1; }
+.mlf-input {
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #172b4d;
+  background: #fff;
+  width: 100%;
+  outline: none;
+}
+.mlf-input:focus { border-color: #0052CC; box-shadow: 0 0 0 2px rgba(0,82,204,0.1); }
+.mlf-comment {
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #172b4d;
+  background: #fff;
+  width: 100%;
+  resize: none;
+  outline: none;
+}
+.mlf-comment:focus { border-color: #0052CC; }
+.mlf-footer { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.mlf-status { font-size: 11px; margin-right: auto; }
+.mlf-error { color: #de350b; }
+.mlf-cancel-btn {
+  background: none;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #42526e;
+  cursor: pointer;
+}
+.mlf-submit-btn {
+  background: #0052CC;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+.mlf-submit-btn:hover:not(:disabled) { background: #0065ff; }
+.mlf-submit-btn:disabled { opacity: 0.6; }
+
+/* ── Transitions in detail panel ── */
+.dp-transitions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+.dp-transition-btn {
+  background: #f4f5f7;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #172b4d;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.dp-transition-btn:hover:not(:disabled) { background: #deebff; border-color: #0052CC; color: #0052CC; }
+.dp-transition-btn:disabled { opacity: 0.6; cursor: default; }
+.dp-trans-status { font-size: 11px; margin-top: 4px; display: block; }
+.dp-trans-ok { color: #36b37e; }
+.dp-trans-error { color: #de350b; }
+
+/* ── Subtask parent display ── */
+.st-parent-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #f4f5f7;
+  border-radius: 4px;
+  font-size: 12px;
+  overflow: hidden;
+}
+.st-parent-key { font-weight: 700; color: #0052CC; flex-shrink: 0; }
+.st-parent-sum { color: #42526e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Dark mode additions ── */
+html.dark .subtask-btn { background: #1e2740; border-color: #343d52; color: #6b7a8d; }
+html.dark .subtask-btn:hover { background: #0f2040; color: #4c9aff; border-color: #4c9aff; }
+html.dark .manual-log-btn { background: #1e2740; border-color: #343d52; color: #6b7a8d; }
+html.dark .manual-log-btn:hover { background: #0f2040; color: #4c9aff; border-color: #4c9aff; }
+html.dark .manual-log-panel { background: #1a2035; border-bottom-color: #2a3347; }
+html.dark .mlf-label { color: #6b7a8d; }
+html.dark .mlf-input { background: #151c2e; border-color: #343d52; color: #e2e8f4; }
+html.dark .mlf-input:focus { border-color: #4c9aff; }
+html.dark .mlf-comment { background: #151c2e; border-color: #343d52; color: #e2e8f4; }
+html.dark .mlf-comment:focus { border-color: #4c9aff; }
+html.dark .mlf-cancel-btn { border-color: #343d52; color: #a3b2c4; }
+html.dark .mlf-submit-btn { background: #0052CC; }
+html.dark .dp-transition-btn { background: #1e2740; border-color: #343d52; color: #a3b2c4; }
+html.dark .dp-transition-btn:hover:not(:disabled) { background: #0f2040; border-color: #4c9aff; color: #4c9aff; }
+html.dark .st-parent-display { background: #1e2740; }
+html.dark .st-parent-sum { color: #a3b2c4; }
 

@@ -113,12 +113,17 @@ function renderCard(issue, showPin) {
       <div class="issue-actions">
         <div class="issue-btn-group">
           <button class="tt-clock-btn${hasActive ? ' active' : ''}" data-tt-clock="${issue.key}" data-summary="${escHtml(f.summary || '')}" title="Track time">⏱</button>
+          ${f.issuetype?.subtask
+            ? `<span class="btn-placeholder">⊕</span>`
+            : `<button class="subtask-btn" data-subtask="${escHtml(issue.key)}" data-summary="${escHtml(f.summary || '')}" title="Create subtask">⊕</button>`}
           ${showPin ? `<button class="pin-btn${isPinned ? ' pinned' : ''}" data-pin="${issue.key}" title="${isPinned ? 'Unpin' : 'Pin'}">📌</button>` : ''}
+          ${showPin ? `<button class="manual-log-btn" data-manual-log="${escHtml(issue.key)}" title="Log work manually">⊙</button>` : ''}
         </div>
         <button class="expand-btn" data-key="${issue.key}" title="Show details">›</button>
       </div>
     </div>
     <div class="issue-detail" data-detail-key="${issue.key}"></div>
+    <div class="manual-log-panel hidden" data-mlp-key="${escHtml(issue.key)}"></div>
   `;
 }
 
@@ -149,7 +154,7 @@ function togglePin(key) {
 function bindIssueClicks(container) {
   container.querySelectorAll('.issue-item').forEach(el => {
     el.addEventListener('click', e => {
-      if (e.target.closest('.expand-btn') || e.target.closest('.tt-clock-btn') || e.target.closest('.pin-btn')) return;
+      if (e.target.closest('.expand-btn') || e.target.closest('.tt-clock-btn') || e.target.closest('.pin-btn') || e.target.closest('.subtask-btn') || e.target.closest('.manual-log-btn')) return;
       openIssue(el.dataset.key);
     });
   });
@@ -174,6 +179,20 @@ function bindIssueClicks(container) {
       } else {
         ttStart(key, summary);
       }
+    });
+  });
+
+  container.querySelectorAll('[data-subtask]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      stOpen(btn.dataset.subtask, btn.dataset.summary);
+    });
+  });
+
+  container.querySelectorAll('[data-manual-log]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      toggleManualLogPanel(btn.dataset.manualLog, container);
     });
   });
 }
@@ -204,18 +223,26 @@ async function toggleDetail(key, container) {
     appendTTDetailSection(key, detailEl);
     bindDetailLinks(detailEl);
     bindTTDetailNotes(key, detailEl);
+    // Transitions are always fetched fresh (they change after transitions are applied)
+    JiraAPI.getTransitions(key)
+      .then(data => appendTransitionsSection(key, data.transitions || [], detailEl))
+      .catch(() => {});
     return;
   }
 
   detailEl.innerHTML = '<div class="loading-spinner" style="margin:16px auto"></div>';
 
   try {
-    const data = await JiraAPI.getIssueDetails(key);
+    const [data, transData] = await Promise.all([
+      JiraAPI.getIssueDetails(key),
+      JiraAPI.getTransitions(key).catch(() => ({ transitions: [] })),
+    ]);
     detailCache.set(key, data);
     detailEl.innerHTML = buildDetailPanel(data);
     appendTTDetailSection(key, detailEl);
     bindDetailLinks(detailEl);
     bindTTDetailNotes(key, detailEl);
+    appendTransitionsSection(key, transData.transitions || [], detailEl);
   } catch (err) {
     detailEl.innerHTML = `<div class="state-msg error-msg" style="padding:12px 14px">${friendlyError(err)}</div>`;
   }
@@ -392,6 +419,192 @@ function bindTTDetailNotes(key, detailEl) {
   });
 
   bindSessionHistoryEvents(detailEl);
+}
+
+// ── Parse time string to seconds ─────────────────────────────────────────────
+// Supports: "2h 30m", "1d", "45m", "1w 2d", etc.
+// 1d = 8h, 1w = 5d * 8h = 40h
+
+function parseTimeSpent(str) {
+  const s = (str || '').trim().toLowerCase();
+  let secs = 0;
+  const wMatch = s.match(/(\d+(?:\.\d+)?)\s*w/);
+  const dMatch = s.match(/(\d+(?:\.\d+)?)\s*d/);
+  const hMatch = s.match(/(\d+(?:\.\d+)?)\s*h/);
+  const mMatch = s.match(/(\d+(?:\.\d+)?)\s*m(?!s)/);
+  if (wMatch) secs += parseFloat(wMatch[1]) * 5 * 8 * 3600;
+  if (dMatch) secs += parseFloat(dMatch[1]) * 8 * 3600;
+  if (hMatch) secs += parseFloat(hMatch[1]) * 3600;
+  if (mMatch) secs += parseFloat(mMatch[1]) * 60;
+  return Math.max(60, Math.round(secs));
+}
+
+// ── Status Transitions ────────────────────────────────────────────────────────
+
+function appendTransitionsSection(key, transitions, detailEl) {
+  if (!transitions || !transitions.length) return;
+  const dp = detailEl.querySelector('.dp-inner');
+  if (!dp) return;
+
+  const buttons = transitions.map(t =>
+    `<button class="dp-transition-btn" data-trans-id="${escHtml(t.id)}" data-trans-name="${escHtml(t.name)}">${escHtml(t.name)}</button>`
+  ).join('');
+
+  dp.insertAdjacentHTML('afterbegin', `
+    <div class="dp-section dp-transitions-section">
+      <div class="dp-label">Change Status</div>
+      <div class="dp-transitions">${buttons}</div>
+      <span class="dp-trans-status hidden"></span>
+    </div>
+  `);
+
+  dp.querySelectorAll('.dp-transition-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      doTransition(key, btn.dataset.transId, btn.dataset.transName, detailEl);
+    });
+  });
+}
+
+async function doTransition(key, transitionId, transName, detailEl) {
+  const dp = detailEl.querySelector('.dp-inner');
+  if (!dp) return;
+
+  const buttons    = dp.querySelectorAll('.dp-transition-btn');
+  const statusSpan = dp.querySelector('.dp-trans-status');
+
+  buttons.forEach(b => { b.disabled = true; });
+  statusSpan.textContent = `Moving to ${transName}…`;
+  statusSpan.className   = 'dp-trans-status';
+
+  try {
+    await JiraAPI.transitionIssue(key, transitionId);
+    statusSpan.textContent = `✓ Moved to ${transName}`;
+    statusSpan.classList.add('dp-trans-ok');
+    setTimeout(() => {
+      detailCache.delete(key);
+      // Re-open the detail panel by simulating close then open on the expand button
+      const expandBtn = detailEl.closest('[id]')?.querySelector?.(`.expand-btn[data-key="${key}"]`) ||
+        document.querySelector(`.expand-btn[data-key="${key}"]`);
+      if (expandBtn) {
+        expandBtn.click(); // close
+        setTimeout(() => expandBtn.click(), 80); // re-open
+      }
+    }, 1200);
+  } catch (err) {
+    buttons.forEach(b => { b.disabled = false; });
+    statusSpan.textContent = friendlyError(err);
+    statusSpan.className   = 'dp-trans-status dp-trans-error';
+  }
+}
+
+// ── Manual Log Work panel ─────────────────────────────────────────────────────
+
+function toggleManualLogPanel(key, container) {
+  // Close any other open manual log panels in this container
+  container.querySelectorAll('.manual-log-panel:not(.hidden)').forEach(panel => {
+    if (panel.dataset.mlpKey !== key) {
+      panel.classList.add('hidden');
+      panel.innerHTML = '';
+    }
+  });
+
+  const panel = container.querySelector(`.manual-log-panel[data-mlp-key="${key}"]`);
+  if (!panel) return;
+
+  if (!panel.classList.contains('hidden')) {
+    panel.classList.add('hidden');
+    panel.innerHTML = '';
+    return;
+  }
+
+  const now     = new Date();
+  const todayVal = toLocalDate(now);
+  const hh      = String(now.getHours()).padStart(2, '0');
+  const mm      = String(now.getMinutes()).padStart(2, '0');
+  const timeVal = `${hh}:${mm}`;
+
+  panel.innerHTML = `
+    <div class="mlf-inner">
+      <div class="mlf-row">
+        <label class="mlf-label">Duration *</label>
+        <input class="mlf-input mlf-duration" type="text" placeholder="e.g. 2h 30m" autocomplete="off" />
+      </div>
+      <div class="mlf-row mlf-row-half">
+        <div>
+          <label class="mlf-label">Date</label>
+          <input class="mlf-input mlf-date" type="date" value="${todayVal}" />
+        </div>
+        <div>
+          <label class="mlf-label">Time</label>
+          <input class="mlf-input mlf-time" type="time" value="${timeVal}" />
+        </div>
+      </div>
+      <div class="mlf-row">
+        <label class="mlf-label">Comment</label>
+        <textarea class="mlf-comment" rows="2" placeholder="Optional comment…"></textarea>
+      </div>
+      <div class="mlf-footer">
+        <span class="mlf-status"></span>
+        <button class="mlf-cancel-btn">Cancel</button>
+        <button class="mlf-submit-btn">Log Work</button>
+      </div>
+    </div>
+  `;
+  panel.classList.remove('hidden');
+
+  const cancelBtn = panel.querySelector('.mlf-cancel-btn');
+  const submitBtn = panel.querySelector('.mlf-submit-btn');
+  const statusEl  = panel.querySelector('.mlf-status');
+
+  cancelBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    panel.classList.add('hidden');
+    panel.innerHTML = '';
+  });
+
+  submitBtn.addEventListener('click', async e => {
+    e.stopPropagation();
+    const durStr  = panel.querySelector('.mlf-duration').value.trim();
+    const dateVal = panel.querySelector('.mlf-date').value;
+    const timeVal = panel.querySelector('.mlf-time').value;
+    const comment = panel.querySelector('.mlf-comment').value.trim();
+
+    statusEl.textContent = '';
+    statusEl.className   = 'mlf-status';
+
+    if (!durStr) {
+      statusEl.textContent = 'Duration is required.';
+      statusEl.classList.add('mlf-error');
+      return;
+    }
+
+    const secs = parseTimeSpent(durStr);
+    if (secs < 60) {
+      statusEl.textContent = 'Duration must be at least 1 minute.';
+      statusEl.classList.add('mlf-error');
+      return;
+    }
+
+    submitBtn.disabled    = true;
+    submitBtn.textContent = 'Logging…';
+
+    try {
+      const started = ttFormatStarted(new Date(`${dateVal}T${timeVal}`).getTime());
+      await JiraAPI.logWork(key, secs, started, comment || undefined);
+      submitBtn.textContent  = '✓ Logged';
+      submitBtn.style.background = '#36B37E';
+      setTimeout(() => {
+        panel.classList.add('hidden');
+        panel.innerHTML = '';
+      }, 1500);
+    } catch (err) {
+      submitBtn.disabled    = false;
+      submitBtn.textContent = 'Log Work';
+      statusEl.textContent  = friendlyError(err);
+      statusEl.classList.add('mlf-error');
+    }
+  });
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
@@ -2049,4 +2262,102 @@ function ciShowError(msg) {
 
   ciBindLabelInput();
   ciBindAssigneeInput();
+}());
+
+// ── Create Subtask ────────────────────────────────────────────────────────────
+
+const stPanel = document.getElementById('create-subtask-panel');
+let stParentKey = '';
+
+function stOpen(parentKey, parentSummary) {
+  stParentKey = parentKey;
+  document.getElementById('st-parent-key').textContent = parentKey;
+  document.getElementById('st-parent-sum').textContent = parentSummary || '';
+  document.getElementById('st-summary').value    = '';
+  document.getElementById('st-description').value = '';
+  document.getElementById('st-issuetype').innerHTML = '<option value="">Loading…</option>';
+  document.getElementById('st-error').classList.add('hidden');
+  const sub = document.getElementById('st-submit-btn');
+  sub.disabled    = false;
+  sub.textContent = 'Create';
+  sub.style.background = '';
+
+  document.getElementById('main-content').classList.add('hidden');
+  stPanel.classList.remove('hidden');
+
+  const projectKey = parentKey.split('-')[0];
+  stLoadSubtaskTypes(projectKey);
+}
+
+function stClose() {
+  stPanel.classList.add('hidden');
+  document.getElementById('main-content').classList.remove('hidden');
+}
+
+async function stLoadSubtaskTypes(projectKey) {
+  const sel = document.getElementById('st-issuetype');
+  try {
+    const meta  = await JiraAPI.getCreateMeta(projectKey);
+    const types = (meta.issuetypes || []).filter(t => t.subtask === true);
+    if (!types.length) {
+      sel.innerHTML = '<option value="">No subtask types found</option>';
+      return;
+    }
+    sel.innerHTML = types.map(t =>
+      `<option value="${escHtml(t.id)}">${escHtml(t.name)}</option>`
+    ).join('');
+  } catch (err) {
+    sel.innerHTML = '<option value="">Failed to load</option>';
+    console.error('stLoadSubtaskTypes', err);
+  }
+}
+
+async function stSubmit() {
+  const summary     = document.getElementById('st-summary').value.trim();
+  const description = document.getElementById('st-description').value.trim();
+  const issueTypeEl = document.getElementById('st-issuetype');
+  const submitBtn   = document.getElementById('st-submit-btn');
+
+  document.getElementById('st-error').classList.add('hidden');
+
+  if (!issueTypeEl.value) { stShowError('Issue type is required.'); return; }
+  if (!summary)            { stShowError('Summary is required.'); return; }
+
+  submitBtn.disabled    = true;
+  submitBtn.textContent = 'Creating…';
+
+  const fields = {
+    project:   { key: stParentKey.split('-')[0] },
+    issuetype: { id: issueTypeEl.value },
+    summary,
+    parent:    { key: stParentKey },
+  };
+  if (description) fields.description = description;
+
+  try {
+    const created = await JiraAPI.createIssue(fields);
+    submitBtn.textContent      = `Created ${created.key} ✓`;
+    submitBtn.style.background = '#36B37E';
+    detailCache.delete(stParentKey);
+    setTimeout(() => { stClose(); loadMyIssues(); }, 1800);
+  } catch (err) {
+    submitBtn.disabled    = false;
+    submitBtn.textContent = 'Create';
+    stShowError(friendlyError(err));
+  }
+}
+
+function stShowError(msg) {
+  const el = document.getElementById('st-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+(function stInit() {
+  document.getElementById('st-close-btn').addEventListener('click', stClose);
+  document.getElementById('st-cancel-btn').addEventListener('click', stClose);
+  document.getElementById('st-submit-btn').addEventListener('click', stSubmit);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !stPanel.classList.contains('hidden')) stClose();
+  });
 }());

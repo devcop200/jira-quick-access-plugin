@@ -80,6 +80,39 @@
     </div>
   </div>
 
+  <div id="create-subtask-panel" class="hidden">
+    <div class="ci-form-header">
+      <span class="ci-form-title">Create Subtask</span>
+      <button class="icon-btn ci-icon-btn-dark" id="st-close-btn" title="Close">×</button>
+    </div>
+    <div class="ci-form-body">
+      <div class="ci-row">
+        <label class="ci-label">Parent</label>
+        <div class="st-parent-display" id="st-parent-display">
+          <span class="st-parent-key" id="st-parent-key"></span>
+          <span class="st-parent-sum" id="st-parent-sum"></span>
+        </div>
+      </div>
+      <div class="ci-row">
+        <label class="ci-label" for="st-issuetype">Type *</label>
+        <select id="st-issuetype" class="ci-select"></select>
+      </div>
+      <div class="ci-row">
+        <label class="ci-label" for="st-summary">Summary *</label>
+        <input id="st-summary" class="ci-input" type="text" placeholder="Short, descriptive title" />
+      </div>
+      <div class="ci-row">
+        <label class="ci-label" for="st-description">Description</label>
+        <textarea id="st-description" class="ci-textarea" rows="3" placeholder="Describe the subtask…"></textarea>
+      </div>
+      <div id="st-error" class="ci-error hidden"></div>
+      <div class="ci-footer">
+        <button class="ci-btn-secondary" id="st-cancel-btn">Cancel</button>
+        <button class="ci-btn-primary" id="st-submit-btn">Create</button>
+      </div>
+    </div>
+  </div>
+
   <div id="not-configured" class="hidden">
     <p>No Jira connection configured.<br/>Add your Jira URL and Personal Access Token to get started.</p>
     <button class="btn-primary" id="go-settings-btn">Open Settings</button>

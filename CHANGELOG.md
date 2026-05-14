@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0] — 2026-05-14
+
+### Added
+- **Create Subtask** — every non-subtask issue card has a new `⊕` button (top-right of the button group, next to the ⏱ clock). Opens a dedicated Create Subtask panel with parent display, subtask-type selector (only sub-task issue types), Summary, and Description. The new subtask is created under the correct parent via `fields.parent`. Subtask issues show an invisible placeholder instead of the button (Jira does not support nested subtasks).
+- **Change Status (Transitions)** — the expanded issue detail panel now shows a **Change Status** row at the top with one button per available transition fetched from `GET /issue/{key}/transitions`. Clicking a transition calls `POST /issue/{key}/transitions`, shows inline feedback, then auto-refreshes the detail panel. Transitions are always fetched fresh (not cached) so they reflect the current state.
+- **Manual Log Work** — issue cards have a new `⊙` button (bottom-right of the button group, next to the 📌 pin). Opens an inline form with Duration (e.g. `2h 30m`), Date, Time, and optional Comment fields. Submits via the existing `JiraAPI.logWork()` endpoint. Parses Jira-style duration strings (1w=5d×8h, 1d=8h) to seconds.
+
+---
+
 ## [1.5.1] — 2026-05-14
 
 ### Fixed

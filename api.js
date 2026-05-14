@@ -296,6 +296,17 @@ const JiraAPI = {
     });
   },
 
+  async getTransitions(issueKey) {
+    return this.request(`issue/${issueKey}/transitions`);
+  },
+
+  async transitionIssue(issueKey, transitionId) {
+    return this.request(`issue/${issueKey}/transitions`, {
+      method: 'POST',
+      body: JSON.stringify({ transition: { id: transitionId } }),
+    });
+  },
+
   async logWork(issueKey, timeSpentSeconds, started, comment) {
     const body = { timeSpentSeconds, started };
     if (comment) body.comment = comment;
