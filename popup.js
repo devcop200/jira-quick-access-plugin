@@ -266,7 +266,7 @@ function buildDetailPanel(data) {
   // Meta grid
   const meta = [];
   if (f.issuetype?.name) meta.push(['Type',     escHtml(f.issuetype.name)]);
-  if (f.status?.name)    meta.push(['Status',   escHtml(f.status.name)]);
+  if (f.status?.name)    meta.push(['Status',   `<span class="dp-status-wrap"><span class="dp-status-text">${escHtml(f.status.name)}</span></span>`]);
   if (f.priority?.name)  meta.push(['Priority', escHtml(f.priority.name)]);
   if (f.created)         meta.push(['Created',  formatDate(f.created)]);
   if (f.updated)         meta.push(['Modified', formatDate(f.updated)]);
@@ -442,59 +442,76 @@ function parseTimeSpent(str) {
 // ── Status Transitions ────────────────────────────────────────────────────────
 
 function appendTransitionsSection(key, transitions, detailEl) {
-  if (!transitions || !transitions.length) return;
-  const dp = detailEl.querySelector('.dp-inner');
-  if (!dp) return;
+  if (!transitions?.length) return;
+  const statusWrap = detailEl.querySelector('.dp-status-wrap');
+  if (!statusWrap) return;
 
-  const buttons = transitions.map(t =>
-    `<button class="dp-transition-btn" data-trans-id="${escHtml(t.id)}" data-trans-name="${escHtml(t.name)}">${escHtml(t.name)}</button>`
-  ).join('');
+  const editBtn = document.createElement('button');
+  editBtn.className = 'dp-status-edit-btn';
+  editBtn.title     = 'Change status';
+  editBtn.textContent = '✏';
+  statusWrap.appendChild(editBtn);
 
-  dp.insertAdjacentHTML('afterbegin', `
-    <div class="dp-section dp-transitions-section">
-      <div class="dp-label">Change Status</div>
-      <div class="dp-transitions">${buttons}</div>
-      <span class="dp-trans-status hidden"></span>
-    </div>
-  `);
+  editBtn.addEventListener('click', () => {
+    const statusText = statusWrap.querySelector('.dp-status-text');
+    statusText.classList.add('hidden');
+    editBtn.classList.add('hidden');
 
-  dp.querySelectorAll('.dp-transition-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      doTransition(key, btn.dataset.transId, btn.dataset.transName, detailEl);
+    const select = document.createElement('select');
+    select.className = 'dp-status-select';
+    transitions.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value       = t.id;
+      opt.textContent = t.to?.name || t.name;
+      select.appendChild(opt);
+    });
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className   = 'dp-status-save-btn';
+    saveBtn.textContent = 'Save';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className   = 'dp-status-cancel-btn';
+    cancelBtn.textContent = '×';
+
+    const errSpan = document.createElement('span');
+    errSpan.className = 'dp-status-err';
+
+    statusWrap.append(select, saveBtn, cancelBtn, errSpan);
+
+    const restore = () => {
+      select.remove(); saveBtn.remove(); cancelBtn.remove(); errSpan.remove();
+      statusText.classList.remove('hidden');
+      editBtn.classList.remove('hidden');
+    };
+
+    cancelBtn.addEventListener('click', restore);
+
+    saveBtn.addEventListener('click', () => {
+      saveBtn.disabled    = true;
+      saveBtn.textContent = '…';
+      errSpan.textContent = '';
+      doTransition(key, select.value, detailEl, () => {}, err => {
+        saveBtn.disabled    = false;
+        saveBtn.textContent = 'Save';
+        errSpan.textContent = err;
+      });
     });
   });
 }
 
-async function doTransition(key, transitionId, transName, detailEl) {
-  const dp = detailEl.querySelector('.dp-inner');
-  if (!dp) return;
-
-  const buttons    = dp.querySelectorAll('.dp-transition-btn');
-  const statusSpan = dp.querySelector('.dp-trans-status');
-
-  buttons.forEach(b => { b.disabled = true; });
-  statusSpan.textContent = `Moving to ${transName}…`;
-  statusSpan.className   = 'dp-trans-status';
-
+async function doTransition(key, transitionId, detailEl, onSuccess, onError) {
   try {
     await JiraAPI.transitionIssue(key, transitionId);
-    statusSpan.textContent = `✓ Moved to ${transName}`;
-    statusSpan.classList.add('dp-trans-ok');
-    setTimeout(() => {
-      detailCache.delete(key);
-      // Re-open the detail panel by simulating close then open on the expand button
-      const expandBtn = detailEl.closest('[id]')?.querySelector?.(`.expand-btn[data-key="${key}"]`) ||
-        document.querySelector(`.expand-btn[data-key="${key}"]`);
-      if (expandBtn) {
-        expandBtn.click(); // close
-        setTimeout(() => expandBtn.click(), 80); // re-open
-      }
-    }, 1200);
+    detailCache.delete(key);
+    onSuccess?.();
+    const expandBtn = document.querySelector(`.expand-btn[data-key="${key}"]`);
+    if (expandBtn?.classList.contains('active')) {
+      expandBtn.click();
+      setTimeout(() => expandBtn.click(), 150);
+    }
   } catch (err) {
-    buttons.forEach(b => { b.disabled = false; });
-    statusSpan.textContent = friendlyError(err);
-    statusSpan.className   = 'dp-trans-status dp-trans-error';
+    onError?.(friendlyError(err));
   }
 }
 

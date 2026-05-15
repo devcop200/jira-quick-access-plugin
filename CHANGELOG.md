@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1] — 2026-05-15
+
+### Changed
+- **Change Status UX** — transitions are no longer shown as a chip bar at the top of the detail panel. Instead, the current status in the meta grid gets a small pencil icon (`✏`). Clicking it replaces the status text with a `<select>` listing the available transitions (showing target status names via `transition.to.name`) plus **Save** and **×** buttons inline. Cancelling restores the original view.
+- **Issue action buttons unified** — `tt-clock-btn`, `pin-btn`, `subtask-btn`, and `manual-log-btn` now share a single CSS rule group for all base and hover styles (light and dark mode). Individual rules only declare what is unique to each button (`flex-shrink` for clock, `filter: grayscale` and pinned state for pin). This fixes the dark mode colour discrepancy between the buttons and ensures future action buttons only need to add the shared class.
+
+---
+
 ## [1.6.0] — 2026-05-14
 
 ### Added
