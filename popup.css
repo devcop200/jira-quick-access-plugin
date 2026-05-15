@@ -2031,8 +2031,8 @@ html.dark #issues-container::-webkit-scrollbar-thumb:hover {
 /* ── Inline status edit (in detail panel meta grid) ── */
 .dp-status-wrap { display: inline-flex; align-items: center; gap: 4px; }
 .dp-status-edit-btn {
-  background: none; border: none; padding: 0 1px;
-  cursor: pointer; font-size: 11px; color: #97a0af; line-height: 1;
+  background: none; border: none; padding: 0 2px;
+  cursor: pointer; font-size: 13px; color: #7a869a; line-height: 1;
   transition: color 0.12s;
 }
 .dp-status-edit-btn:hover { color: #0052CC; }
@@ -2079,7 +2079,7 @@ html.dark .mlf-cancel-btn { border-color: #343d52; color: #a3b2c4; }
 html.dark .mlf-submit-btn { background: #0052CC; }
 
 /* ── Dark mode: inline status edit ── */
-html.dark .dp-status-edit-btn { color: #4c5470; }
+html.dark .dp-status-edit-btn { color: #8899b0; }
 html.dark .dp-status-edit-btn:hover { color: #4c9aff; }
 html.dark .dp-status-select { background: #151c2e; border-color: #343d52; color: #e2e8f4; }
 html.dark .dp-status-save-btn { background: #1868db; }
