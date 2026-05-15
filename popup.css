@@ -318,12 +318,12 @@ header {
 
 .issue-btn-group {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 28px 28px;
   gap: 3px;
 }
 
-/* ── Issue action buttons — shared base (clock, subtask, pin, manual-log) ── */
-.tt-clock-btn, .pin-btn, .subtask-btn, .manual-log-btn {
+/* ── Issue action buttons — shared base ── */
+.tt-clock-btn, .pin-btn, .subtask-btn, .manual-log-btn, .tt-btn {
   background: #f4f5f7;
   border: 1px solid #dfe1e6;
   cursor: pointer;
@@ -337,16 +337,14 @@ header {
   align-items: center;
   justify-content: center;
 }
-.tt-clock-btn:hover, .pin-btn:hover, .subtask-btn:hover, .manual-log-btn:hover {
+.tt-clock-btn:hover, .pin-btn:hover, .subtask-btn:hover, .manual-log-btn:hover, .tt-btn:hover {
   background: #ebecf0;
   border-color: #c1c7d0;
   color: #42526e;
 }
 
 /* Pin-specific overrides */
-.pin-btn { filter: grayscale(1); }
-.pin-btn:hover { filter: grayscale(0.4); }
-.pin-btn.pinned { background: #fff0f0; border-color: #ffbdbd; filter: none; }
+.pin-btn.pinned { background: #fff0f0; border-color: #ffbdbd; }
 
 /* ── Search panel ── */
 .search-box {
@@ -804,10 +802,20 @@ header {
   color: rgba(255,255,255,0.9);
   cursor: pointer;
   padding: 1px 3px;
+  border-radius: 3px;
   font-size: 12px;
   line-height: 1;
 }
 .tt-chip-btn:hover { color: #fff; }
+/* Chip nav toggle/stop colors (on colored chip background) */
+.tt-chip.running .tt-chip-btn[data-tt-toggle] { background: rgba(255,196,0,0.35); }
+.tt-chip.paused  .tt-chip-btn[data-tt-toggle] { background: rgba(0,200,100,0.35); }
+.tt-chip-btn[data-tt-chip-stop]               { background: rgba(255,80,0,0.35); }
+/* Overflow panel toggle/stop (on light background) */
+.tt-overflow-item .tt-chip-btn                                { color: #42526e; border-radius: 3px; }
+.tt-overflow-item.running     .tt-chip-btn[data-tt-toggle]    { background: #fffae6; color: #974f0c; }
+.tt-overflow-item:not(.running) .tt-chip-btn[data-tt-toggle]  { background: #e3fcef; color: #006644; }
+.tt-overflow-item .tt-chip-btn[data-tt-chip-stop]             { background: #ffebe6; color: #de350b; }
 
 .tt-overflow-btn {
   background: rgba(255,255,255,0.15);
@@ -894,6 +902,7 @@ header {
   color: #0052CC;
   min-width: 44px;
   flex-shrink: 0;
+  text-align: right;
 }
 .tt-section-counter.paused { color: #97a0af; }
 
@@ -916,28 +925,13 @@ header {
   text-overflow: ellipsis;
 }
 
-.tt-controls {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  flex-shrink: 0;
-}
-
-.tt-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-radius: 3px;
-  padding: 4px 0;
-  font-size: 20px;
-  line-height: 1;
-  color: #42526e;
-  width: 34px;
-  text-align: center;
-  transition: background 0.12s;
-}
-.tt-btn:hover { background: #ebecf0; }
-.tt-btn.stop:hover { color: #de350b; }
+.tt-controls { display: flex; align-items: center; gap: 3px; flex-shrink: 0; margin-right: 5px; }
+/* tt-btn: fixed square size so ▶ ⏸ ⏹ don't vary in width */
+.tt-btn { width: 28px; padding-left: 0; padding-right: 0; }
+/* state color overrides */
+.tt-btn.is-paused  { background: #e3fcef; border-color: #79f2c0; color: #006644; }
+.tt-btn.is-running { background: #fffae6; border-color: #ffe380; color: #974f0c; }
+.tt-btn.stop       { background: #ffebe6; border-color: #ffbdad; color: #de350b; }
 
 /* Stop confirm overlay */
 .tt-stop-confirm {
@@ -1530,12 +1524,12 @@ html.dark .pinned-label {
   color: #ff6b6b;
 }
 
-/* ── Pin / clock / expand buttons ── */
 /* ── Issue action buttons — shared dark base ── */
 html.dark .tt-clock-btn,
 html.dark .pin-btn,
 html.dark .subtask-btn,
-html.dark .manual-log-btn {
+html.dark .manual-log-btn,
+html.dark .tt-btn {
   background: #242938;
   border-color: #343d52;
   color: #6b7a8d;
@@ -1543,7 +1537,8 @@ html.dark .manual-log-btn {
 html.dark .tt-clock-btn:hover,
 html.dark .pin-btn:hover,
 html.dark .subtask-btn:hover,
-html.dark .manual-log-btn:hover {
+html.dark .manual-log-btn:hover,
+html.dark .tt-btn:hover {
   background: #2d3347;
   border-color: #4c5470;
   color: #a3b2c4;
@@ -1727,6 +1722,10 @@ html.dark .tt-overflow-item {
 }
 html.dark .tt-overflow-item.running { background: #2d1a12; }
 html.dark .tt-overflow-key { color: #4c9aff; }
+html.dark .tt-overflow-item .tt-chip-btn                               { color: #a3b2c4; }
+html.dark .tt-overflow-item.running     .tt-chip-btn[data-tt-toggle]   { background: #2b2208; color: #f0b429; }
+html.dark .tt-overflow-item:not(.running) .tt-chip-btn[data-tt-toggle] { background: #0d2b1a; color: #57d9a3; }
+html.dark .tt-overflow-item .tt-chip-btn[data-tt-chip-stop]            { background: #2d1110; color: #ff5630; }
 html.dark .tt-overflow-counter { color: #e2e8f4; }
 
 /* ── TT section label & my-tasks label ── */
@@ -1749,9 +1748,9 @@ html.dark .tt-section-counter.paused { color: #6b7a8d; }
 html.dark .tt-issue-key { color: #4c9aff; }
 html.dark .tt-issue-summary { color: #e2e8f4; }
 
-html.dark .tt-btn { color: #a3b2c4; }
-html.dark .tt-btn:hover { background: #2d3347; }
-html.dark .tt-btn.stop:hover { color: #ff5630; }
+html.dark .tt-btn.is-paused  { background: #0d2b1a; border-color: #1f6b47; color: #57d9a3; }
+html.dark .tt-btn.is-running { background: #2b2208; border-color: #7a5500; color: #f0b429; }
+html.dark .tt-btn.stop       { background: #2d1110; border-color: #7a2424; color: #ff5630; }
 
 /* TT stop confirm */
 html.dark .tt-stop-confirm {

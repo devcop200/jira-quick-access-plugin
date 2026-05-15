@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.2] — 2026-05-15
+
+### Changed
+- **Action button icons** — pin uses `🖈`, edit-status uses `🖉`, notes uses `🖉`; timer controls use plain Unicode `▶ ⏸ ⏹` (no emoji variation selector) for consistent glyph width across platforms
+- **Timer control button style unified** — play / pause / stop / notes buttons now share the same base CSS rule as the card action buttons (`background`, `border`, `padding`, `border-radius`, `font-size`), replacing their previous borderless large-icon style
+- **Timer control button colours** — play shows a green background, pause yellow, stop red (light and dark mode variants); the card action buttons retain their neutral grey style
+- **Timer control alignment** — controls are positioned to start at the same horizontal column as the clock button above them; achieved by fixing the card button grid to explicit `28px 28px` columns (previously `1fr 1fr`, which let font rendering vary the width per OS) and a stable `5px` right margin on the control group
+
+---
+
 ## [1.6.1] — 2026-05-15
 
 ### Changed

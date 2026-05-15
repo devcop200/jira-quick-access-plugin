@@ -26,7 +26,7 @@ Click the **+** button in the navbar to open the Create Issue form:
 
 - **Status filter chips** — sticky bar at the top lets you filter by Jira status (All / In Progress / Blocked / etc.); the Blocked chip is highlighted red
 - **Local search** — search box below the filter chips filters by task ID or summary on every keystroke; case-insensitive and special-character safe; layered on top of the active status filter
-- **Pinned tasks** — click the 📌 button on any task card to pin it; pinned tasks appear in a **Pinned** section above My Tasks, below the Time Tracking section; pins persist across popup open/close; unpinning or starting a timer moves the task to the appropriate section automatically
+- **Pinned tasks** — click the 🖈 button on any task card to pin it; pinned tasks appear in a **Pinned** section above My Tasks, below the Time Tracking section; pins persist across popup open/close; unpinning or starting a timer moves the task to the appropriate section automatically
 
 ### Issue actions (per card)
 
@@ -36,8 +36,16 @@ Each issue card has a 2×2 button group:
 |---|---|---|
 | Top-left | ⏱ | Start / pause local timer |
 | Top-right | ⊕ | Create a subtask under this issue |
-| Bottom-left | 📌 | Pin / unpin |
+| Bottom-left | 🖈 | Pin / unpin |
 | Bottom-right | ⊙ | Manually log work to Jira |
+
+When a timer is active a row of controls appears in the **Time Tracking** section above the issue list, aligned with the card buttons:
+
+| Button | Style | Action |
+|---|---|---|
+| ▶ / ⏸ | Green / Yellow | Resume or pause the timer |
+| ⏹ | Red | Stop the timer |
+| 🖉 | Neutral | Open session notes |
 
 #### Create Subtask (`⊕`)
 Opens a panel pre-linked to the parent issue. Select a subtask type, fill in Summary and optional Description, then Create. Not shown on sub-task issues (Jira does not support nested subtasks).

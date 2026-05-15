@@ -116,7 +116,7 @@ function renderCard(issue, showPin) {
           ${f.issuetype?.subtask
             ? `<span class="btn-placeholder">⊕</span>`
             : `<button class="subtask-btn" data-subtask="${escHtml(issue.key)}" data-summary="${escHtml(f.summary || '')}" title="Create subtask">⊕</button>`}
-          ${showPin ? `<button class="pin-btn${isPinned ? ' pinned' : ''}" data-pin="${issue.key}" title="${isPinned ? 'Unpin' : 'Pin'}">📌</button>` : ''}
+          ${showPin ? `<button class="pin-btn${isPinned ? ' pinned' : ''}" data-pin="${issue.key}" title="${isPinned ? 'Unpin' : 'Pin'}">🖈</button>` : ''}
           ${showPin ? `<button class="manual-log-btn" data-manual-log="${escHtml(issue.key)}" title="Log work manually">⊙</button>` : ''}
         </div>
         <button class="expand-btn" data-key="${issue.key}" title="Show details">›</button>
@@ -449,7 +449,7 @@ function appendTransitionsSection(key, transitions, detailEl) {
   const editBtn = document.createElement('button');
   editBtn.className = 'dp-status-edit-btn';
   editBtn.title     = 'Change status';
-  editBtn.textContent = '✏';
+  editBtn.textContent = '🖉';
   statusWrap.appendChild(editBtn);
 
   editBtn.addEventListener('click', () => {
@@ -1399,13 +1399,15 @@ function ttUpdateRow(key) {
   const playBtn = document.querySelector(`[data-tt-play="${key}"]`);
   if (playBtn) {
     playBtn.title   = running ? 'Pause' : 'Resume';
-    playBtn.textContent = running ? '⏸️' : '▶️';
+    playBtn.textContent = running ? '⏸' : '▶';
+    playBtn.classList.toggle('is-running', running);
+    playBtn.classList.toggle('is-paused', !running);
   }
   const chipBtn = document.querySelector(`.tt-chip[data-key="${key}"] .tt-chip-btn`);
   if (chipBtn) {
     chipBtn.title       = running ? 'Pause' : 'Resume';
     chipBtn.dataset.ttToggle = key;
-    chipBtn.textContent = running ? '⏸️' : '▶️';
+    chipBtn.textContent = running ? '⏸' : '▶';
   }
   const clockBtn = document.querySelector(`.tt-clock-btn[data-tt-clock="${key}"]`);
   if (clockBtn) clockBtn.classList.toggle('active', true);
@@ -1419,9 +1421,9 @@ function ttChipHtml(key, e) {
   return `<div class="tt-chip ${running ? 'running' : 'paused'}" data-key="${key}">
     <span class="tt-chip-key" data-chip-open="${key}">${escHtml(key)}</span>
     <span class="tt-chip-counter">${ttFormatMs(ttGetLiveMs(key))}</span>
-    <button class="tt-chip-btn" data-tt-toggle="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸️' : '▶️'}</button>
-    <button class="tt-chip-btn" data-tt-chip-stop="${key}" title="Stop">⏹️</button>
-    <button class="tt-chip-btn" data-tt-chip-notes="${key}" title="Notes">📝</button>
+    <button class="tt-chip-btn" data-tt-toggle="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸' : '▶'}</button>
+    <button class="tt-chip-btn" data-tt-chip-stop="${key}" title="Stop">⏹</button>
+    <button class="tt-chip-btn" data-tt-chip-notes="${key}" title="Notes">🖉</button>
   </div>`;
 }
 
@@ -1513,9 +1515,9 @@ function ttToggleOverflow(entries, anchorEl, forceOpen = false) {
     return `<div class="tt-overflow-item ${running ? 'running' : ''}" data-key="${key}">
       <span class="tt-overflow-key" data-chip-open="${key}">${escHtml(key)}</span>
       <span class="tt-overflow-counter" data-key="${key}">${ttFormatMs(ttGetLiveMs(key))}</span>
-      <button class="tt-chip-btn" data-tt-toggle="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸️' : '▶️'}</button>
-      <button class="tt-chip-btn" data-tt-chip-stop="${key}" title="Stop">⏹️</button>
-      <button class="tt-chip-btn" data-tt-chip-notes="${key}" title="Notes">📝</button>
+      <button class="tt-chip-btn" data-tt-toggle="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸' : '▶'}</button>
+      <button class="tt-chip-btn" data-tt-chip-stop="${key}" title="Stop">⏹</button>
+      <button class="tt-chip-btn" data-tt-chip-notes="${key}" title="Notes">🖉</button>
     </div>`;
   }).join('');
 
@@ -1581,9 +1583,9 @@ function ttRenderSection() {
           <div class="tt-issue-summary">${escHtml(e.summary || key)}</div>
         </div>
         <div class="tt-controls">
-          <button class="tt-btn" data-tt-play="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸️' : '▶️'}</button>
-          <button class="tt-btn stop" data-tt-stop="${key}" title="Stop">⏹️</button>
-          <button class="tt-btn" data-tt-notes="${key}" title="Notes">📝</button>
+          <button class="tt-btn${running ? ' is-running' : ' is-paused'}" data-tt-play="${key}" title="${running ? 'Pause' : 'Resume'}">${running ? '⏸' : '▶'}</button>
+          <button class="tt-btn stop" data-tt-stop="${key}" title="Stop">⏹</button>
+          <button class="tt-btn" data-tt-notes="${key}" title="Notes">🖉</button>
         </div>
       </div>
       <div class="tt-notes-panel hidden" data-notes-key="${key}">
