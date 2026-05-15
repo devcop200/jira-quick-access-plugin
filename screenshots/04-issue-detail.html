@@ -38,6 +38,21 @@ header {
 }
 .chip.active { background: #0052CC; border-color: #0052CC; color: #fff; }
 
+/* Shared action button base */
+.tt-clock-btn, .pin-btn, .subtask-btn, .manual-log-btn {
+  background: #f4f5f7; border: 1px solid #dfe1e6; cursor: pointer;
+  color: #97a0af; font-size: 16px; padding: 3px 7px;
+  border-radius: 4px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+/* Button group grid */
+.issue-btn-group { display: grid; grid-template-columns: 28px 28px; gap: 3px; flex-shrink: 0; }
+/* Invisible placeholder */
+.btn-placeholder { display: flex; align-items: center; justify-content: center;
+  padding: 3px 7px; visibility: hidden; font-size: 16px; line-height: 1; }
+/* Pin pinned state */
+.pin-btn.pinned { background: #fff0f0; border-color: #ffbdbd; color: #de350b; }
+
 .issue-item {
   display: flex; align-items: flex-start; gap: 14px;
   padding: 16px 28px; border-bottom: 1px solid #f4f5f7;
@@ -85,6 +100,13 @@ header {
 .label-chip { display: inline-block; background: #ebecf0; color: #42526e; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 10px; margin-right: 5px; margin-bottom: 12px; }
 .detail-actions { display: flex; gap: 10px; }
 .action-link { font-size: 12px; color: #0052CC; font-weight: 600; background: #deebff; padding: 5px 12px; border-radius: 3px; }
+
+/* Status transition editing */
+.dp-status-wrap { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.dp-status-edit-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: #7a869a; padding: 0 2px; }
+.dp-status-select { border: 1px solid #dfe1e6; border-radius: 3px; padding: 2px 6px; font-size: 12px; color: #172b4d; }
+.dp-status-save-btn { background: #0052cc; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: 600; padding: 3px 10px; cursor: pointer; }
+.dp-status-cancel-btn { background: none; border: none; cursor: pointer; color: #97a0af; font-size: 18px; padding: 0 3px; line-height: 1; }
 </style>
 </head>
 <body>
@@ -128,6 +150,12 @@ header {
         <span class="prio prio-high"></span>
       </div>
     </div>
+    <div class="issue-btn-group" style="align-self:center">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <button class="expand-btn open">›</button>
   </div>
 
@@ -147,8 +175,21 @@ header {
         <span class="detail-value">🔴 High</span>
       </div>
       <div class="detail-field">
-        <span class="detail-label">Sprint</span>
-        <span class="detail-value link">Sprint 24</span>
+        <span class="detail-label">Status</span>
+        <span class="detail-value">
+          <div class="dp-status-wrap">
+            <span class="status-badge inprog">In Progress</span>
+            <button class="dp-status-edit-btn">🖉</button>
+            <select class="dp-status-select">
+              <option>To Do</option>
+              <option selected>In Progress</option>
+              <option>Code Review</option>
+              <option>Done</option>
+            </select>
+            <button class="dp-status-save-btn">Save</button>
+            <button class="dp-status-cancel-btn">×</button>
+          </div>
+        </span>
       </div>
     </div>
     <div class="track-label">Time Tracking</div>
@@ -176,6 +217,12 @@ header {
         <span class="prio prio-high"></span>
       </div>
     </div>
+    <div class="issue-btn-group" style="align-self:center">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <button class="expand-btn closed">›</button>
   </div>
 
@@ -188,6 +235,12 @@ header {
         <span class="status-badge inprog">In Progress</span>
         <span class="prio prio-med"></span>
       </div>
+    </div>
+    <div class="issue-btn-group" style="align-self:center">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
     </div>
     <button class="expand-btn closed">›</button>
   </div>
@@ -202,6 +255,12 @@ header {
         <span class="prio prio-med"></span>
       </div>
     </div>
+    <div class="issue-btn-group" style="align-self:center">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <button class="expand-btn closed">›</button>
   </div>
 
@@ -212,8 +271,14 @@ header {
       <div class="issue-summary">Export reports to CSV and PDF formats</div>
       <div class="issue-meta">
         <span class="status-badge" style="background:#e3fcef;color:#006644">Ready for Testing</span>
-        <span class="prio prio-low"></span>
+        <span class="prio prio-med"></span>
       </div>
+    </div>
+    <div class="issue-btn-group" style="align-self:center">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
     </div>
     <button class="expand-btn closed">›</button>
   </div>

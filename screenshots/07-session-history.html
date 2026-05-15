@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Screenshot 7 – Session History & Log Work</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 1280px; height: 800px; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px; color: #172b4d; background: #fff;
+}
+header {
+  background: #0052CC; color: #fff;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 28px;
+}
+.header-left { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+.user-label { font-size: 13px; opacity: 0.75; font-weight: 400; }
+.header-chips { flex: 1; display: flex; align-items: center; gap: 6px; }
+.tt-chip { display: inline-flex; align-items: center; gap: 5px; background: #de350b; border: 1px solid #de350b; border-radius: 12px; padding: 4px 10px; color: #fff; font-size: 12px; font-weight: 600; }
+.tt-chip-key { font-weight: 700; }
+.tt-chip-counter { font-variant-numeric: tabular-nums; }
+.tt-chip-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 15px; padding: 0 2px; line-height: 1; border-radius: 3px; cursor: pointer; }
+.tt-chip.running .tt-chip-btn[data-tt-toggle] { background: rgba(255,196,0,0.35); }
+.tt-chip.paused  .tt-chip-btn[data-tt-toggle] { background: rgba(0,200,100,0.35); }
+.tt-chip-btn[data-tt-chip-stop] { background: rgba(255,80,0,0.35); }
+.icon-btn { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 20px; padding: 4px 8px; flex-shrink: 0; }
+
+.tabs { display: flex; border-bottom: 2px solid #ebecf0; }
+.tab { background: none; border: none; padding: 14px 24px; font-size: 15px; font-weight: 500; color: #5e6c84; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.tab.active { color: #0052CC; border-bottom-color: #0052CC; }
+.tab-badge { display: inline-block; background: #DE350B; color: #fff; font-size: 11px; font-weight: 700; border-radius: 10px; padding: 1px 6px; margin-left: 5px; }
+
+.filter-bar { display: flex; gap: 8px; padding: 12px 28px; border-bottom: 1px solid #ebecf0; }
+.chip { flex-shrink: 0; background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 14px; padding: 5px 14px; font-size: 13px; font-weight: 500; color: #42526e; white-space: nowrap; }
+.chip.active { background: #0052CC; border-color: #0052CC; color: #fff; }
+
+/* Search */
+.search-row { padding: 8px 28px; border-bottom: 1px solid #ebecf0; }
+.search-row input { width: 100%; border: 1px solid #dfe1e6; border-radius: 4px; padding: 6px 10px; font-size: 13px; color: #172b4d; font-family: inherit; outline: none; }
+
+/* TT section */
+.tt-section { border-bottom: 1px solid #ebecf0; }
+.tt-section-label { font-size: 10px; font-weight: 700; color: #7a869a; text-transform: uppercase; letter-spacing: 0.6px; padding: 8px 28px 4px; }
+.tt-issue-row { display: flex; align-items: center; gap: 12px; padding: 8px 28px; border-bottom: 1px solid #f4f5f7; position: relative; }
+.tt-section-counter { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: #0052CC; min-width: 44px; flex-shrink: 0; text-align: right; }
+.tt-issue-info { flex: 1; min-width: 0; }
+.tt-issue-key { font-size: 11px; color: #0052CC; font-weight: 600; line-height: 1.3; }
+.tt-issue-summary { font-size: 12px; color: #172b4d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tt-controls { display: flex; align-items: center; gap: 3px; flex-shrink: 0; margin-right: 5px; }
+.tt-clock-btn, .pin-btn, .subtask-btn, .manual-log-btn, .tt-btn {
+  background: #f4f5f7; border: 1px solid #dfe1e6; cursor: pointer;
+  color: #97a0af; font-size: 16px; padding: 3px 7px;
+  border-radius: 4px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.tt-btn { width: 28px; padding-left: 0; padding-right: 0; }
+.tt-btn.is-running { background: #fffae6; border-color: #ffe380; color: #974f0c; }
+.tt-btn.stop       { background: #ffebe6; border-color: #ffbdad; color: #de350b; }
+
+/* Notes panel — open */
+.tt-notes-panel {
+  background: #f8f9fa;
+  border-bottom: 1px solid #ebecf0;
+  padding: 8px 14px;
+}
+.tt-notes-textarea {
+  width: 100%; border: 1px solid #dfe1e6; border-radius: 4px;
+  padding: 5px 8px; font-size: 12px; font-family: inherit;
+  color: #172b4d; resize: vertical; min-height: 44px; outline: none;
+  box-sizing: border-box; background: #fff;
+}
+.tt-notes-footer { display: flex; justify-content: flex-end; margin-top: 4px; margin-bottom: 6px; }
+.tt-notes-save { background: #0052CC; color: #fff; border: none; border-radius: 3px; padding: 3px 12px; font-size: 11px; font-weight: 600; cursor: pointer; }
+.tt-session-history { margin-top: 8px; }
+.tt-session-label { font-size: 10px; font-weight: 700; color: #7a869a; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.tt-session-entry-wrap { border-bottom: 1px solid #f4f5f7; }
+.tt-session-entry-wrap:last-child { border-bottom: none; }
+.tt-session-entry { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 11px; color: #5e6c84; }
+.tt-session-duration { font-weight: 700; color: #172b4d; flex-shrink: 0; min-width: 40px; }
+.tt-session-date { flex-shrink: 0; color: #7a869a; }
+.tt-notes-toggle { background: none; border: 1px solid #dfe1e6; border-radius: 3px; padding: 1px 6px; font-size: 10px; color: #42526e; cursor: pointer; }
+.tt-session-log { background: #0052cc; border: 1px solid #0052cc; border-radius: 3px; color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; cursor: pointer; white-space: nowrap; }
+.tt-session-log.tt-log-done { background: #36b37e; border-color: #36b37e; cursor: default; opacity: 0.85; }
+.tt-session-delete { margin-left: auto; background: none; border: none; cursor: pointer; color: #c1c7d0; font-size: 15px; line-height: 1; padding: 0 2px; }
+.tt-session-notes-body { padding: 4px 0 6px 48px; }
+.tt-notes-pre { font-family: inherit; font-size: 11px; color: #5e6c84; white-space: pre-wrap; margin: 0; line-height: 1.5; background: #f0f0f0; border-radius: 3px; padding: 4px 7px; }
+
+/* My tasks */
+.tt-my-tasks-label { font-size: 10px; font-weight: 700; color: #7a869a; text-transform: uppercase; letter-spacing: 0.6px; padding: 8px 28px 4px; border-top: 1px solid #ebecf0; }
+.issue-item { display: flex; align-items: center; gap: 14px; padding: 14px 28px; border-bottom: 1px solid #f4f5f7; }
+.type-icon { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+.issue-body { flex: 1; min-width: 0; }
+.issue-key { font-size: 12px; color: #0052CC; font-weight: 600; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.tt-time-chip { font-size: 10px; font-weight: 700; color: #0052CC; background: #deebff; border-radius: 3px; padding: 1px 5px; }
+.issue-summary { font-size: 15px; color: #172b4d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.issue-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.status-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+.inprog { background: #deebff; color: #0052cc; }
+.review { background: #eae6ff; color: #403294; }
+.prio { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.prio-high { background: #ff5630; }
+.prio-med  { background: #ff8b00; }
+.prio-low  { background: #2684ff; }
+.issue-btn-group { display: grid; grid-template-columns: 28px 28px; gap: 3px; flex-shrink: 0; }
+.btn-placeholder { display: flex; align-items: center; justify-content: center; padding: 3px 7px; visibility: hidden; font-size: 16px; line-height: 1; }
+.expand-btn { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: none; border: none; color: #97a0af; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <span style="width:28px;height:28px;background:#fff;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:#0052CC;font-weight:900;font-size:17px;flex-shrink:0">J</span>
+      <span>Jira</span>
+      <span class="user-label">Alex Johnson</span>
+    </div>
+    <div class="header-chips">
+      <div class="tt-chip running" data-key="PROJ-512">
+        <span class="tt-chip-key" data-chip-open="PROJ-512">PROJ-512</span>
+        <span class="tt-chip-counter">1:24:07</span>
+        <button class="tt-chip-btn" data-tt-toggle="PROJ-512" title="Pause">⏸</button>
+        <button class="tt-chip-btn" data-tt-chip-stop="PROJ-512" title="Stop">⏹</button>
+        <button class="tt-chip-btn" data-tt-chip-notes="PROJ-512" title="Notes">🖉</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:4px;flex-shrink:0">
+      <span class="icon-btn" style="font-weight:400;font-size:22px">+</span>
+      <span class="icon-btn">↻</span>
+      <span class="icon-btn">☾</span>
+      <span class="icon-btn">⚙</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active">My Issues</button>
+    <button class="tab">Search</button>
+    <button class="tab">Logged Work</button>
+    <button class="tab">Watching</button>
+    <button class="tab">Notifications<span class="tab-badge">3</span></button>
+  </div>
+
+  <div class="filter-bar">
+    <div class="chip active">All <span style="opacity:.75">6</span></div>
+    <div class="chip">In Progress <span style="opacity:.6">2</span></div>
+    <div class="chip">Code Review <span style="opacity:.6">1</span></div>
+    <div class="chip">To Do <span style="opacity:.6">2</span></div>
+  </div>
+
+  <div class="search-row">
+    <input type="text" placeholder="Search by ID or summary…" />
+  </div>
+
+  <div class="tt-section">
+    <div class="tt-section-label">Time Tracking</div>
+    <div class="tt-issue-row" style="background:#fff8f7">
+      <span class="tt-section-counter">01:24:07</span>
+      <div class="tt-issue-info">
+        <div class="tt-issue-key"><span class="tt-issue-key-link">PROJ-512</span></div>
+        <div class="tt-issue-summary">Implement rate limiting for auth endpoints</div>
+      </div>
+      <div class="tt-controls">
+        <button class="tt-btn is-running">⏸</button>
+        <button class="tt-btn stop">⏹</button>
+        <button class="tt-btn" style="background:#deebff;border-color:#0052CC;color:#0052CC">🖉</button>
+      </div>
+    </div>
+
+    <!-- Notes panel — open (notes btn active) -->
+    <div class="tt-notes-panel">
+      <textarea class="tt-notes-textarea" placeholder="Session notes…">Implementing sliding-window counter in Redis. Testing edge cases for concurrent requests.</textarea>
+      <div class="tt-notes-footer"><button class="tt-notes-save">Save</button></div>
+
+      <div class="tt-session-history">
+        <div class="tt-session-label">Past sessions</div>
+
+        <!-- session 1 — notes expanded -->
+        <div class="tt-session-entry-wrap">
+          <div class="tt-session-entry">
+            <span class="tt-session-duration">1h 45m</span>
+            <span class="tt-session-date">14 May</span>
+            <button class="tt-notes-toggle">▴ Notes</button>
+            <button class="tt-session-log">Log to Jira</button>
+            <button class="tt-session-delete">×</button>
+          </div>
+          <div class="tt-session-notes-body">
+            <pre class="tt-notes-pre">Set up Redis connection pool, added basic rate-limit middleware, writing unit tests.</pre>
+          </div>
+        </div>
+
+        <!-- session 2 — collapsed, unlogged -->
+        <div class="tt-session-entry-wrap">
+          <div class="tt-session-entry">
+            <span class="tt-session-duration">55m</span>
+            <span class="tt-session-date">13 May</span>
+            <button class="tt-notes-toggle">▾ Notes</button>
+            <button class="tt-session-log">Log to Jira</button>
+            <button class="tt-session-delete">×</button>
+          </div>
+        </div>
+
+        <!-- session 3 — collapsed, already logged -->
+        <div class="tt-session-entry-wrap">
+          <div class="tt-session-entry">
+            <span class="tt-session-duration">35m</span>
+            <span class="tt-session-date">12 May</span>
+            <button class="tt-notes-toggle">▾ Notes</button>
+            <button class="tt-session-log tt-log-done" disabled>✓ Logged</button>
+            <button class="tt-session-delete">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tt-my-tasks-label">My Tasks</div>
+
+  <div class="issue-item">
+    <div class="type-icon" style="background:#0052cc">T</div>
+    <div class="issue-body">
+      <div class="issue-key">PROJ-512 <span class="tt-time-chip">1h 24m</span></div>
+      <div class="issue-summary">Implement rate limiting for auth endpoints</div>
+      <div class="issue-meta">
+        <span class="status-badge inprog">In Progress</span>
+        <span class="prio prio-high"></span>
+      </div>
+    </div>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn" style="color:#0052CC;background:#deebff;border-color:#0052CC">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
+    <span class="expand-btn">›</span>
+  </div>
+
+  <div class="issue-item">
+    <div class="type-icon" style="background:#e53935">B</div>
+    <div class="issue-body">
+      <div class="issue-key">PROJ-498</div>
+      <div class="issue-summary">Login page flickers on Safari</div>
+      <div class="issue-meta">
+        <span class="status-badge" style="background:#dfe1e6;color:#42526e">To Do</span>
+        <span class="prio prio-med"></span>
+      </div>
+    </div>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
+    <span class="expand-btn">›</span>
+  </div>
+
+  <div class="issue-item">
+    <div class="type-icon" style="background:#6554C0">S</div>
+    <div class="issue-body">
+      <div class="issue-key">PROJ-487</div>
+      <div class="issue-summary">Add GDPR data export endpoint</div>
+      <div class="issue-meta">
+        <span class="status-badge review">Code Review</span>
+        <span class="prio prio-low"></span>
+      </div>
+    </div>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
+    <span class="expand-btn">›</span>
+  </div>
+
+</body>
+</html>

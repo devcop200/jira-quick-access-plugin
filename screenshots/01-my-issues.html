@@ -22,7 +22,10 @@ header {
 .tt-chip { display: flex; align-items: center; gap: 5px; background: #de350b; border: 1px solid #de350b; border-radius: 12px; padding: 4px 10px; color: #fff; font-size: 12px; font-weight: 600; }
 .tt-chip-key { font-weight: 700; }
 .tt-chip-counter { font-variant-numeric: tabular-nums; }
-.tt-chip-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 15px; padding: 0 1px; line-height: 1; }
+.tt-chip-btn { background: none; border: none; color: rgba(255,255,255,0.9); font-size: 15px; padding: 0 2px; line-height: 1; border-radius: 3px; cursor: pointer; }
+.tt-chip.running .tt-chip-btn[data-tt-toggle] { background: rgba(255,196,0,0.35); }
+.tt-chip.paused  .tt-chip-btn[data-tt-toggle] { background: rgba(0,200,100,0.35); }
+.tt-chip-btn[data-tt-chip-stop] { background: rgba(255,80,0,0.35); }
 .tt-overflow-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 4px 10px; color: #fff; font-size: 12px; font-weight: 700; }
 .icon-btn { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 20px; padding: 4px 8px; flex-shrink: 0; }
 
@@ -46,8 +49,30 @@ header {
 .tt-info { flex: 1; min-width: 0; }
 .tt-key { font-size: 12px; color: #0052CC; font-weight: 700; margin-bottom: 2px; }
 .tt-summary { font-size: 13px; color: #172b4d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tt-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-.tt-btn { background: none; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 20px; width: 34px; height: 30px; display: flex; align-items: center; justify-content: center; color: #42526e; }
+.tt-controls { display: flex; align-items: center; gap: 3px; flex-shrink: 0; margin-right: 5px; }
+
+/* Shared action button base */
+.tt-clock-btn, .pin-btn, .subtask-btn, .manual-log-btn, .tt-btn {
+  background: #f4f5f7; border: 1px solid #dfe1e6; cursor: pointer;
+  color: #97a0af; font-size: 16px; padding: 3px 7px;
+  border-radius: 4px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+/* TT btn state overrides */
+.tt-btn { width: 28px; padding-left: 0; padding-right: 0; }
+.tt-btn.is-paused  { background: #e3fcef; border-color: #79f2c0; color: #006644; }
+.tt-btn.is-running { background: #fffae6; border-color: #ffe380; color: #974f0c; }
+.tt-btn.stop       { background: #ffebe6; border-color: #ffbdad; color: #de350b; }
+
+/* Button group grid */
+.issue-btn-group { display: grid; grid-template-columns: 28px 28px; gap: 3px; flex-shrink: 0; }
+
+/* Pin pinned state */
+.pin-btn.pinned { background: #fff0f0; border-color: #ffbdbd; color: #de350b; }
+
+/* Invisible placeholder */
+.btn-placeholder { display: flex; align-items: center; justify-content: center;
+  padding: 3px 7px; visibility: hidden; font-size: 16px; line-height: 1; }
 
 .issue-item { display: flex; align-items: center; gap: 14px; padding: 14px 28px; border-bottom: 1px solid #f4f5f7; }
 .type-icon { width: 22px; height: 22px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
@@ -64,7 +89,6 @@ header {
 .prio-high { background: #ff5630; }
 .prio-med  { background: #ff8b00; }
 .prio-low  { background: #2684ff; }
-.clock-btn { flex-shrink: 0; background: #f4f5f7; border: 1px solid #dfe1e6; border-radius: 4px; font-size: 16px; padding: 4px 8px; color: #42526e; }
 .expand-btn { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: none; border: none; color: #97a0af; font-size: 18px; display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
@@ -77,12 +101,12 @@ header {
       <span class="user-label">Alex Johnson</span>
     </div>
     <div class="header-chips">
-      <div class="tt-chip">
-        <span class="tt-chip-key">PROJ-482</span>
+      <div class="tt-chip running" data-key="PROJ-482">
+        <span class="tt-chip-key" data-chip-open="PROJ-482">PROJ-482</span>
         <span class="tt-chip-counter">1:23:45</span>
-        <span class="tt-chip-btn">⏸️</span>
-        <span class="tt-chip-btn">⏹️</span>
-        <span class="tt-chip-btn">📝</span>
+        <button class="tt-chip-btn" data-tt-toggle="PROJ-482" title="Pause">⏸</button>
+        <button class="tt-chip-btn" data-tt-chip-stop="PROJ-482" title="Stop">⏹</button>
+        <button class="tt-chip-btn" data-tt-chip-notes="PROJ-482" title="Notes">🖉</button>
       </div>
       <span class="tt-overflow-btn">+1 ▾</span>
     </div>
@@ -124,9 +148,11 @@ header {
         <span class="prio prio-high"></span>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">
-      <span class="clock-btn">⏱</span>
-      <span style="background:#fff0f0;border:1px solid #ffbdbd;border-radius:4px;font-size:16px;padding:3px 7px;color:#de350b;cursor:pointer">📌</span>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="btn-placeholder">⊕</span>
+      <span class="pin-btn pinned">🖈</span>
+      <span class="manual-log-btn">⊙</span>
     </div>
     <span class="expand-btn">›</span>
   </div>
@@ -140,9 +166,9 @@ header {
         <div class="tt-summary">Implement OAuth2 login flow for mobile clients</div>
       </div>
       <div class="tt-controls">
-        <span class="tt-btn">⏸️</span>
-        <span class="tt-btn">⏹️</span>
-        <span class="tt-btn">📝</span>
+        <span class="tt-btn is-running">⏸</span>
+        <span class="tt-btn stop">⏹</span>
+        <span class="tt-btn">🖉</span>
       </div>
     </div>
     <div class="tt-issue-row">
@@ -152,9 +178,9 @@ header {
         <div class="tt-summary">Dashboard crashes on empty dataset when filter is active</div>
       </div>
       <div class="tt-controls">
-        <span class="tt-btn">▶️</span>
-        <span class="tt-btn">⏹️</span>
-        <span class="tt-btn">📝</span>
+        <span class="tt-btn is-paused">▶</span>
+        <span class="tt-btn stop">⏹</span>
+        <span class="tt-btn">🖉</span>
       </div>
     </div>
   </div>
@@ -171,7 +197,12 @@ header {
         <span class="prio prio-med"></span>
       </div>
     </div>
-    <span class="clock-btn">⏱</span>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <span class="expand-btn">›</span>
   </div>
 
@@ -185,7 +216,12 @@ header {
         <span class="prio prio-med"></span>
       </div>
     </div>
-    <span class="clock-btn">⏱</span>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <span class="expand-btn">›</span>
   </div>
 
@@ -199,7 +235,12 @@ header {
         <span class="prio prio-low"></span>
       </div>
     </div>
-    <span class="clock-btn">⏱</span>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <span class="expand-btn">›</span>
   </div>
 
@@ -213,7 +254,12 @@ header {
         <span class="prio prio-low"></span>
       </div>
     </div>
-    <span class="clock-btn">⏱</span>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <span class="expand-btn">›</span>
   </div>
 
@@ -227,7 +273,12 @@ header {
         <span class="prio prio-high"></span>
       </div>
     </div>
-    <span class="clock-btn">⏱</span>
+    <div class="issue-btn-group">
+      <span class="tt-clock-btn">⏱</span>
+      <span class="subtask-btn">⊕</span>
+      <span class="pin-btn">🖈</span>
+      <span class="manual-log-btn">⊙</span>
+    </div>
     <span class="expand-btn">›</span>
   </div>
 </body>
